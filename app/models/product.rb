@@ -1,4 +1,6 @@
 class Product < ApplicationRecord
+  include Ransackable
+
   belongs_to :brand, optional: true
   belongs_to :category, optional: true
   has_many :stock_items, dependent: :destroy

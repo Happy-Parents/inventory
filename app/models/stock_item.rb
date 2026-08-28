@@ -1,4 +1,6 @@
 class StockItem < ApplicationRecord
+  include Ransackable
+
   belongs_to :product
   belongs_to :warehouse
 
