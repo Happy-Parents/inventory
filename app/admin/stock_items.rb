@@ -1,4 +1,5 @@
 ActiveAdmin.register StockItem do
+  menu priority: 5
   permit_params :product_id, :warehouse_id, :quantity, :damaged_quantity
 
   index do
