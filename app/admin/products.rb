@@ -4,31 +4,39 @@ ActiveAdmin.register Product do
                 :brand_id, :category_id, :language, :site_status,
                 :packaging_condition, :hp_url, :notes
 
+  # ТМ	Назва виробника	Назва на сайті	Арт. зовн.	Арт. внутр.	Кількість	Категорія	Пакування	Наявність на сайті	Мова	Нотатки	Склад
   index do
     selectable_column
 
-    column :manufacturer_name
-    column :name
     column :brand
-    column :category
-    column :sku
     column :manufacturer_sku
-    column :language
-    column :site_status
-    column :packaging_condition
+    column :manufacturer_name
+    column :sku
+    column :name
     column("Qty") { |product| product.total_quantity }
+    column :category
+    column :packaging_condition
+    column :site_status
+    column :hp_url
+    column :language
+    column :notes
+    column("Warehouse") { |product| product.warehouses.pluck(:name) }
     actions
   end
 
-  filter :manufacturer_name
-  filter :name
-  filter :sku
-  filter :manufacturer_sku
   filter :brand
+  filter :manufacturer_sku
+  filter :manufacturer_name
+  filter :sku
+  filter :name
+  filter :stock_items_quantity, as: :numeric, label: "Qty"
   filter :category
-  filter :language, as: :select, collection: Product.languages
-  filter :site_status, as: :select, collection: Product.site_statuses
   filter :packaging_condition, as: :select, collection: Product.packaging_conditions
+  filter :site_status, as: :select, collection: Product.site_statuses
+  filter :hp_url
+  filter :language, as: :select, collection: Product.languages
+  filter :notes
+  filter :warehouses, as: :select, collection: -> { Warehouse.order(:name) }, label: "Warehouses"
 
   form do |f|
     f.inputs do
