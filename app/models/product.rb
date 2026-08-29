@@ -6,6 +6,8 @@ class Product < ApplicationRecord
   has_many :stock_items, dependent: :destroy
   has_many :warehouses, through: :stock_items
 
+  accepts_nested_attributes_for :stock_items, allow_destroy: true
+
   enum :language, {
     ukrainian: "ukrainian",
     russian: "russian",

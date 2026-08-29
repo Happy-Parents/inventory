@@ -2,7 +2,8 @@ ActiveAdmin.register Product do
   menu priority: 1
   permit_params :manufacturer_name, :name, :manufacturer_sku, :sku,
                 :brand_id, :category_id, :language, :site_status,
-                :packaging_condition, :hp_url, :notes
+                :packaging_condition, :hp_url, :notes,
+                stock_items_attributes: [ :id, :warehouse_id, :quantity, :damaged_quantity, :_destroy ]
 
   # ТМ	Назва виробника	Назва на сайті	Арт. зовн.	Арт. внутр.	Кількість	Категорія	Пакування	Наявність на сайті	Мова	Нотатки	Склад
   index do
@@ -52,6 +53,15 @@ ActiveAdmin.register Product do
       f.input :hp_url
       f.input :notes
     end
+
+    f.inputs "Stock" do
+      f.has_many :stock_items, heading: false, allow_destroy: true, new_record: "Add stock" do |si|
+        si.input :warehouse
+        si.input :quantity
+        si.input :damaged_quantity
+      end
+    end
+
     f.actions
   end
 
