@@ -1,5 +1,5 @@
 ActiveAdmin.setup do |config|
-  config.site_title = "Happy Parents Inventory"
+  config.site_title = "Склад Happy Parents"
 
   # Set an optional image to be displayed for the header
   # instead of a string (overrides :site_title)
@@ -119,13 +119,8 @@ ActiveAdmin.setup do |config|
   # Default:
   # config.logout_link_method = :get
 
-  # == Root
-  #
-  # Set the action to call for the root path. You can set different
-  # roots for each namespace.
-  #
-  # Default:
-  # config.root_to = 'dashboard#index'
+
+  config.root_to = 'products#index'
 
   # == Admin Comments
   #
@@ -177,7 +172,6 @@ ActiveAdmin.setup do |config|
   # available formats in your application.
   #
   config.localize_format = :long
-
   # == Setting a Favicon
   #
   # config.favicon = 'favicon.ico'
