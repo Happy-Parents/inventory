@@ -1,5 +1,5 @@
 ActiveAdmin.register Admin do
-  permit_params :email, :password, :password_confirmation
+  permit_params :email, :role, :password, :password_confirmation
 
   index do
     selectable_column
@@ -15,7 +15,7 @@ ActiveAdmin.register Admin do
   form do |f|
     f.inputs do
       f.input :email
-      f.input :role
+      f.input :role, as: :select, collection: Admin.enum_options(:role)
       f.input :password
       f.input :password_confirmation
     end
