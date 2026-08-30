@@ -19,6 +19,7 @@ gem "bcrypt", "~> 3.1.7"
 gem "activeadmin", "4.0.0.beta22"
 gem "devise", ">= 5.0.4"
 gem "tailwindcss-ruby", "~> 4.0"
+gem 'pundit', '>= 2.5.2'
 
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

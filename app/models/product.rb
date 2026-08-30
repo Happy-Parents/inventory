@@ -1,5 +1,6 @@
 class Product < ApplicationRecord
   include Ransackable
+  include TranslatableEnum
 
   belongs_to :brand, optional: true
   belongs_to :category, optional: true
@@ -29,17 +30,6 @@ class Product < ApplicationRecord
 
   def total_quantity
     stock_items.sum(:quantity)
-  end
-
-  def self.human_enum(enum, value)
-    return if value.nil?
-
-    I18n.t(value, scope: [ :activerecord, :enums, model_name.i18n_key, enum ],
-                  default: value.to_s.humanize)
-  end
-
-  def self.enum_options(enum)
-    public_send(enum.to_s.pluralize).keys.map { |key| [ human_enum(enum, key), key ] }
   end
 
   def language_label            = self.class.human_enum(:language, language)

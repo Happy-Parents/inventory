@@ -41,6 +41,7 @@ uk:
       admin:
         id: "ID"
         email: "Електронна пошта"
+        role: Роль
         encrypted_password: "Зашифрований пароль"
         reset_password_token: "Токен скидання пароля"
         reset_password_sent_at: "Час надсилання скидання пароля"
@@ -109,6 +110,10 @@ uk:
         products: "Товари"
         products_count: "К-сть товарів"
     enums:
+      admin:
+        role:
+          manager: Менеджер
+          super_admin: Супер адмін
       product:
         language:
           ukrainian: "Українська"
