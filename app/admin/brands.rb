@@ -6,7 +6,7 @@ ActiveAdmin.register Brand do
     selectable_column
 
     column :name
-    column("Products") { |brand| brand.products.count }
+    column(:products_count) { |brand| brand.products.count }
     actions
   end
 

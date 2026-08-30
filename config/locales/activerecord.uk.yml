@@ -1,0 +1,125 @@
+uk:
+  activerecord:
+    models:
+      comment:
+        one: "Коментар"
+        few: "Коментарі"
+        many: "Коментарів"
+        other: "Коментарі"
+      admin:
+        one: "Адмін"
+        few: "Адміни"
+        many: "Адмінів"
+        other: "Адміни"
+      brand:
+        one: "Бренд"
+        few: "Бренди"
+        many: "Брендів"
+        other: "Бренди"
+      category:
+        one: "Категорія"
+        few: "Категорії"
+        many: "Категорій"
+        other: "Категорії"
+      product:
+        one: "Товар"
+        few: "Товари"
+        many: "Товарів"
+        other: "Товари"
+      stock_item:
+        one: "Складська позиція"
+        few: "Складські позиції"
+        many: "Складських позицій"
+        other: "Складські позиції"
+      warehouse:
+        one: "Склад"
+        few: "Склади"
+        many: "Складів"
+        other: "Склади"
+
+    attributes:
+      admin:
+        id: "ID"
+        email: "Електронна пошта"
+        encrypted_password: "Зашифрований пароль"
+        reset_password_token: "Токен скидання пароля"
+        reset_password_sent_at: "Час надсилання скидання пароля"
+        remember_created_at: "Час запам'ятовування входу"
+        created_at: "Створено"
+        updated_at: "Оновлено"
+
+      brand:
+        id: "ID"
+        name: "Назва"
+        created_at: "Створено"
+        updated_at: "Оновлено"
+        products: "Товари"
+        products_count: "К-сть товарів"
+
+      category:
+        id: "ID"
+        name: "Назва"
+        parent_id: "Батьківська категорія"
+        created_at: "Створено"
+        updated_at: "Оновлено"
+        parent: "Батьківська категорія"
+        subcategories: "Підкатегорії"
+        products: "Товари"
+        products_count: "К-сть товарів"
+
+      product:
+        id: "ID"
+        manufacturer_name: "Назва виробника"
+        name: "Назва на сайті"
+        manufacturer_sku: "Артикул виробника"
+        sku: "Артикул внутрішній"
+        brand_id: "Бренд"
+        category_id: "Категорія"
+        language: "Мова"
+        site_status: "Наявність на сайті"
+        packaging_condition: "Стан упаковки"
+        hp_url: "Посилання на сторінку"
+        notes: "Нотатки"
+        created_at: "Створено"
+        updated_at: "Оновлено"
+        brand: "Бренд"
+        category: "Категорія"
+        stock_items: "Складські позиції"
+        warehouses: "Склади"
+        qty: "Кількість"
+        warehouse: "Склад"
+
+      stock_item:
+        id: "ID"
+        product_id: "Товар"
+        warehouse_id: "Склад"
+        quantity: "Кількість"
+        damaged_quantity: "Кількість пошкоджених"
+        created_at: "Створено"
+        updated_at: "Оновлено"
+        product: "Назва товару(артикул)"
+        warehouse: "Склад"
+
+      warehouse:
+        id: "ID"
+        name: "Назва"
+        created_at: "Створено"
+        updated_at: "Оновлено"
+        stock_items: "Складські позиції"
+        products: "Товари"
+        products_count: "К-сть товарів"
+    enums:
+      product:
+        language:
+          ukrainian: "Українська"
+          russian: "Російська"
+          english: "Англійська"
+          unknown: "Невідомо"
+          not_applicable: "Без мови"
+        site_status:
+          published: "Опубліковано"
+          not_published: "НЕ опубліковано"
+          needs_review: "Невідомо"
+        packaging_condition:
+          ok: "Ціла"
+          damaged: "Пошкоджена"

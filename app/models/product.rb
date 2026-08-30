@@ -30,4 +30,19 @@ class Product < ApplicationRecord
   def total_quantity
     stock_items.sum(:quantity)
   end
+
+  def self.human_enum(enum, value)
+    return if value.nil?
+
+    I18n.t(value, scope: [ :activerecord, :enums, model_name.i18n_key, enum ],
+                  default: value.to_s.humanize)
+  end
+
+  def self.enum_options(enum)
+    public_send(enum.to_s.pluralize).keys.map { |key| [ human_enum(enum, key), key ] }
+  end
+
+  def language_label            = self.class.human_enum(:language, language)
+  def site_status_label         = self.class.human_enum(:site_status, site_status)
+  def packaging_condition_label = self.class.human_enum(:packaging_condition, packaging_condition)
 end

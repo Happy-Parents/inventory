@@ -7,7 +7,7 @@ ActiveAdmin.register Category do
 
     column :name
     column :parent
-    column("Products") { |category| category.products.count }
+    column(:products_count) { |category| category.products.count }
     actions
   end
 

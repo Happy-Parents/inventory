@@ -5,7 +5,6 @@ ActiveAdmin.register Product do
                 :packaging_condition, :hp_url, :notes,
                 stock_items_attributes: [ :id, :warehouse_id, :quantity, :damaged_quantity, :_destroy ]
 
-  # ТМ	Назва виробника	Назва на сайті	Арт. зовн.	Арт. внутр.	Кількість	Категорія	Пакування	Наявність на сайті	Мова	Нотатки	Склад
   index do
     selectable_column
 
@@ -14,14 +13,14 @@ ActiveAdmin.register Product do
     column :manufacturer_name
     column :sku
     column :name
-    column("Qty") { |product| product.total_quantity }
+    column(:qty) { |product| product.total_quantity }
     column :category
-    column :packaging_condition
-    column :site_status
+    column(:packaging_condition) { |product| product.packaging_condition_label }
+    column(:site_status) { |product| product.site_status_label }
     column :hp_url
-    column :language
+    column(:language) { |product| product.language_label }
     column :notes
-    column("Warehouse") { |product| product.warehouses.pluck(:name) }
+    column(:warehouse) { |product| product.warehouses.pluck(:name) }
     actions
   end
 
@@ -30,14 +29,14 @@ ActiveAdmin.register Product do
   filter :manufacturer_name
   filter :sku
   filter :name
-  filter :stock_items_quantity, as: :numeric, label: "Qty"
+  filter :stock_items_quantity, as: :numeric, label: -> { Product.human_attribute_name(:qty) }
   filter :category
-  filter :packaging_condition, as: :select, collection: Product.packaging_conditions
-  filter :site_status, as: :select, collection: Product.site_statuses
+  filter :packaging_condition, as: :select, collection: -> { Product.enum_options(:packaging_condition) }
+  filter :site_status, as: :select, collection: -> { Product.enum_options(:site_status) }
   filter :hp_url
-  filter :language, as: :select, collection: Product.languages
+  filter :language, as: :select, collection: -> { Product.enum_options(:language) }
   filter :notes
-  filter :warehouses, as: :select, collection: -> { Warehouse.order(:name) }, label: "Warehouses"
+  filter :warehouses, as: :select, collection: -> { Warehouse.order(:name) }, label: -> { Product.human_attribute_name(:warehouse) }
 
   form do |f|
     f.inputs do
@@ -47,14 +46,14 @@ ActiveAdmin.register Product do
       f.input :category
       f.input :manufacturer_sku
       f.input :sku
-      f.input :language, as: :select, collection: Product.languages.keys
-      f.input :site_status, as: :select, collection: Product.site_statuses.keys
-      f.input :packaging_condition, as: :select, collection: Product.packaging_conditions.keys
+      f.input :language, as: :select, collection: Product.enum_options(:language)
+      f.input :site_status, as: :select, collection: Product.enum_options(:site_status)
+      f.input :packaging_condition, as: :select, collection: Product.enum_options(:packaging_condition)
       f.input :hp_url
       f.input :notes
     end
 
-    f.inputs "Stock" do
+    f.inputs I18n.t("active_admin.stock") do
       f.has_many :stock_items, heading: false, allow_destroy: true, new_record: "Add stock" do |si|
         si.input :warehouse
         si.input :quantity
@@ -74,9 +73,9 @@ ActiveAdmin.register Product do
       row :category
       row :manufacturer_sku
       row :sku
-      row :language
-      row :site_status
-      row :packaging_condition
+      row(:language) { |product| product.language_label }
+      row(:site_status) { |product| product.site_status_label }
+      row(:packaging_condition) { |product| product.packaging_condition_label }
       row :hp_url
       row :notes
       row("Total quantity") { |product| product.total_quantity }
@@ -84,7 +83,7 @@ ActiveAdmin.register Product do
       row :updated_at
     end
 
-    panel "Stock" do
+    panel I18n.t("active_admin.stock") do
       table_for product.stock_items do
         column :warehouse
         column :quantity

@@ -6,7 +6,7 @@ ActiveAdmin.register Warehouse do
     selectable_column
 
     column :name
-    column("Products") { |warehouse| warehouse.products.count }
+    column(:products_count) { |warehouse| warehouse.products.count }
 
     actions
   end

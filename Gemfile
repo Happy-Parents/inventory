@@ -14,6 +14,7 @@ gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem "stimulus-rails"
 gem "csv"
+gem "rails-i18n"
 gem "bcrypt", "~> 3.1.7"
 gem "activeadmin", "4.0.0.beta22"
 gem "devise", ">= 5.0.4"

@@ -5,7 +5,7 @@ ActiveAdmin.register StockItem do
   index do
     selectable_column
 
-    column :product
+    column(:product) { |stock_item| product_name_and_sku(stock_item.product) }
     column :warehouse
     column :quantity
     column :damaged_quantity
