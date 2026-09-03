@@ -3,6 +3,9 @@
   <head>
     <title><%= content_for(:title) || "Inventory" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <% if Rails.env.production? %>
+      <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <% end %>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Inventory">
     <meta name="mobile-web-app-capable" content="yes">
