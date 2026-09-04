@@ -172,10 +172,6 @@ ActiveAdmin.setup do |config|
   # available formats in your application.
   #
   config.localize_format = :long
-  # == Setting a Favicon
-  #
-  # config.favicon = 'favicon.ico'
-
   # == Meta Tags
   #
   # Add additional meta tags to the head element of active admin pages.
