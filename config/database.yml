@@ -1,29 +1,40 @@
 default: &default
-  adapter: sqlite3
-  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  timeout: 5000
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  port: <%= ENV.fetch("DB_PORT", 5432) %>
+  username: <%= ENV.fetch("DB_USERNAME", "hp_inventory") %>
+  password: <%= ENV.fetch("DB_PASSWORD", nil) %>
 
 development:
   <<: *default
-  database: storage/development.sqlite3
+  database: hp_inventory_development
 
 test:
   <<: *default
-  database: storage/test.sqlite3
+  database: hp_inventory_test
 
+# Production DBs on one server:
+# - primary app db
+# - solid cache
+# - solid cueue
+# - solid cable
+# They are created by `db:prepare` on first boot,
+# which requires the DB_USERNAME role to have CREATEDB.
 production:
   primary:
     <<: *default
-    database: storage/production.sqlite3
+    database: hp_inventory_production
   cache:
     <<: *default
-    database: storage/production_cache.sqlite3
+    database: hp_inventory_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    database: storage/production_queue.sqlite3
+    database: hp_inventory_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    database: storage/production_cable.sqlite3
+    database: hp_inventory_production_cable
     migrations_paths: db/cable_migrate

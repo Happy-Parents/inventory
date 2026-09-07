@@ -11,13 +11,16 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_08_30_133411) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "active_admin_comments", force: :cascade do |t|
-    t.integer "author_id"
+    t.bigint "author_id"
     t.string "author_type"
     t.text "body"
     t.datetime "created_at", null: false
     t.string "namespace"
-    t.integer "resource_id"
+    t.bigint "resource_id"
     t.string "resource_type"
     t.datetime "updated_at", null: false
     t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
@@ -48,15 +51,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_133411) do
   create_table "categories", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
-    t.integer "parent_id"
+    t.bigint "parent_id"
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_categories_on_name", unique: true
     t.index ["parent_id"], name: "index_categories_on_parent_id"
   end
 
   create_table "products", force: :cascade do |t|
-    t.integer "brand_id"
-    t.integer "category_id"
+    t.bigint "brand_id"
+    t.bigint "category_id"
     t.datetime "created_at", null: false
     t.string "hp_url"
     t.string "language", default: "unknown", null: false
@@ -77,10 +80,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_133411) do
   create_table "stock_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "damaged_quantity", default: 0, null: false
-    t.integer "product_id", null: false
+    t.bigint "product_id", null: false
     t.integer "quantity", default: 0, null: false
     t.datetime "updated_at", null: false
-    t.integer "warehouse_id", null: false
+    t.bigint "warehouse_id", null: false
     t.index ["product_id", "warehouse_id"], name: "index_stock_items_on_product_id_and_warehouse_id", unique: true
     t.index ["product_id"], name: "index_stock_items_on_product_id"
     t.index ["warehouse_id"], name: "index_stock_items_on_warehouse_id"
