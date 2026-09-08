@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - echo "Starting deployment"
+    - echo "Deployment configuration is ready"
