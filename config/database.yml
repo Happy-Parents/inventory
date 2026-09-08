@@ -4,8 +4,8 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
   port: <%= ENV.fetch("DB_PORT", 5432) %>
-  username: <%= ENV.fetch("DB_USERNAME", "hp_inventory") %>
-  password: <%= ENV.fetch("DB_PASSWORD", nil) %>
+  username: <%= ENV.fetch("DB_USERNAME") || Rails.application.credentials.dig('db', 'username') || 'hp_inventory' %>
+  password: <%= ENV.fetch("DB_PASSWORD") || Rails.application.credentials.dig('db', 'password') || nil %>
 
 development:
   <<: *default
