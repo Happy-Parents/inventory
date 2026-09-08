@@ -4,8 +4,8 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
   port: <%= ENV.fetch("DB_PORT", 5432) %>
-  username: <%= ENV.fetch("DB_USERNAME") || Rails.application.credentials.dig('db', 'username') || 'hp_inventory' %>
-  password: <%= ENV.fetch("DB_PASSWORD") || Rails.application.credentials.dig('db', 'password') || nil %>
+  username: <%= ENV["DB_USERNAME"] || Rails.application.credentials.dig(:db, :username) || "hp_inventory" %>
+  password: <%= ENV["DB_PASSWORD"] || Rails.application.credentials.dig(:db, :password) %>
 
 development:
   <<: *default
@@ -15,26 +15,32 @@ test:
   <<: *default
   database: hp_inventory_test
 
-# Production DBs on one server:
+# Production runs four DBs on one server:
 # - primary app db
 # - solid cache
-# - solid cueue
+# - solid queue
 # - solid cable
-# They are created by `db:prepare` on first boot,
-# which requires the DB_USERNAME role to have CREATEDB.
+#
+# `db:prepare` creates whichever of them are missing, which needs the
+# DB_USERNAME role to hold CREATEDB. Managed hosts (cPanel & co.) usually don't
+# grant that and force an account prefix on database names instead, so each
+# name can be overridden from the environment: set DB_NAME and the other three
+# default to "<DB_NAME>_cache" / "_queue" / "_cable", or name all four
+# explicitly with DB_NAME_CACHE / DB_NAME_QUEUE / DB_NAME_CABLE.
+<% prod_db = ENV.fetch("DB_NAME", "hp_inventory_production") %>
 production:
   primary:
     <<: *default
-    database: hp_inventory_production
+    database: <%= prod_db %>
   cache:
     <<: *default
-    database: hp_inventory_production_cache
+    database: <%= ENV.fetch("DB_NAME_CACHE", "#{prod_db}_cache") %>
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    database: hp_inventory_production_queue
+    database: <%= ENV.fetch("DB_NAME_QUEUE", "#{prod_db}_queue") %>
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    database: hp_inventory_production_cable
+    database: <%= ENV.fetch("DB_NAME_CABLE", "#{prod_db}_cable") %>
     migrations_paths: db/cable_migrate
