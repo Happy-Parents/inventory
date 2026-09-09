@@ -64,7 +64,7 @@ ActiveAdmin.register Product do
     f.actions
   end
 
-  show do
+  show title: :manufacturer_name do
     attributes_table do
       row :id
       row :manufacturer_name
