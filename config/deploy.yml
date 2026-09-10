@@ -1,13 +1,14 @@
 # Name of your application. Used to uniquely configure containers.
 service: inventory
 
-# Name of the container image (use your-user/app-name on external registries).
-image: inventory
+# Name of the container image. GHCR requires the owner namespace, so the full
+# reference becomes ghcr.io/happy-parents/inventory.
+image: happy-parents/inventory
 
 # Deploy to these servers.
 servers:
   web:
-    - 192.168.0.1
+    - 193.169.188.144
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -26,15 +27,15 @@ servers:
 
 # Where you keep your container images.
 registry:
-  # Alternatives: hub.docker.com / registry.digitalocean.com / ghcr.io / ...
-  server: localhost:5555
+  server: ghcr.io
 
-  # Needed for authenticated registries.
-  # username: your-user
-
-  # Always use an access token rather than real password when possible.
-  # password:
-  #   - KAMAL_REGISTRY_PASSWORD
+  # Both are secret references resolved from .kamal/secrets, which reads them
+  # out of the encrypted production credentials. The password must be a PAT
+  # with write:packages, never an account password.
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  password:
+    - KAMAL_REGISTRY_PASSWORD
 
 # Inject ENV variables into containers (secrets come from .kamal/secrets).
 env:
@@ -56,6 +57,11 @@ env:
     # docker network by its accessory hostname.
     DB_HOST: inventory-db
     DB_USERNAME: hp_inventory
+
+    # Puma threads and therefore the Active Record pool size. Solid Queue runs
+    # in-process here (SOLID_QUEUE_IN_PUMA above) and needs its 3 worker
+    # threads plus 2 connections, so anything below 5 makes it warn and throttle.
+    RAILS_MAX_THREADS: 5
 
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
@@ -93,15 +99,19 @@ builder:
   #   - GITHUB_TOKEN
   #   - RAILS_MASTER_KEY
 
-# Use a different ssh user than root
-# ssh:
-#   user: app
+# Deploy as the unprivileged `deployer` user (uid 1000, member of the docker
+# group, no sudo) rather than root. The key is named explicitly so deploys do
+# not depend on whatever ~/.ssh/config or the agent happens to offer.
+ssh:
+  user: deployer
+  keys:
+    - ~/.ssh/koi_vps_deployer
 
 # Use accessory services (secrets come from .kamal/secrets).
 accessories:
   db:
     image: postgres:17
-    host: 192.168.0.2
+    host: 193.169.188.144
     # Bind to localhost only; the app reaches it over the Kamal docker network.
     port: "127.0.0.1:5432:5432"
     env:
