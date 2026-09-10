@@ -1,0 +1,60 @@
+# syntax=docker/dockerfile:1
+# check=error=true
+
+# Development image. Unlike the production Dockerfile, this one is a single
+# stage: it keeps the toolchain around (gems get rebuilt as the Gemfile
+# changes), installs the development/test bundle groups, and expects the
+# application code to arrive as a bind mount from compose.yaml so edits take
+# effect without a rebuild.
+#
+# See README.md for usage. Production lives in ./Dockerfile.
+
+# Keep in sync with .ruby-version and Dockerfile.
+ARG RUBY_VERSION=3.4.8
+FROM docker.io/library/ruby:$RUBY_VERSION-slim
+
+WORKDIR /rails
+
+# - build-essential/pkg-config/libpq-dev/libyaml-dev: native gem extensions (pg, psych, ...)
+# - libvips: Active Storage variants via image_processing
+# - postgresql-client: psql / pg_isready / bin/rails dbconsole
+# - git: bundler needs it for git-sourced gems
+# - curl: healthchecks and general debugging
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+      build-essential \
+      curl \
+      git \
+      libpq-dev \
+      libvips \
+      libyaml-dev \
+      pkg-config \
+      postgresql-client && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Gems live outside /rails so the bind mount over /rails cannot shadow them,
+# and so a host-side .bundle/config never leaks into the container.
+ENV RAILS_ENV="development" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_APP_CONFIG="/usr/local/bundle" \
+    PORT="3000"
+
+# Install gems first so this layer is reused until the Gemfile changes.
+COPY Gemfile Gemfile.lock ./
+COPY vendor/ ./vendor/
+RUN bundle install && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache
+
+# Baseline copy of the code. compose.yaml mounts the working tree on top of it,
+# but this keeps the image runnable on its own (e.g. `docker run` one-offs).
+COPY . .
+
+# Runs as root on purpose: bind mounts are the whole point of this image, and
+# root sidesteps uid mismatches between the container and the host checkout.
+# (Docker Desktop on macOS/Windows maps ownership for you.) On a Linux host
+# where container-created files show up as root-owned, add
+# `user: "${UID:-1000}:${GID:-1000}"` to the compose services.
+
+ENTRYPOINT ["/rails/bin/docker-entrypoint-dev"]
+EXPOSE 3000
+CMD ["./bin/rails", "server", "-b", "0.0.0.0"]

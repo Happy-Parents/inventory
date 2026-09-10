@@ -1,0 +1,106 @@
+# Production environment, self-hosted on a single Docker host.
+#
+#   cp .env.example .env.production   # then fill in the secrets
+#   docker compose --env-file .env.production -f compose.production.yaml up -d --build
+#
+# Kamal (config/deploy.yml) remains the option for multi-server, zero-downtime
+# rollouts; this file is for running the same production image with plain
+# Compose. See README.md.
+#
+# The app listens on port 80 inside the container (Thruster in front of Puma).
+# Terminate TLS at a reverse proxy in front of it, or set proxy.ssl in
+# config/deploy.yml and use Kamal instead.
+
+name: hp-inventory-production
+
+# Shared by every service that runs application code.
+x-app: &app
+  image: hp-inventory:${APP_VERSION:-latest}
+  environment: &app_env
+    RAILS_ENV: production
+    # Decrypts config/credentials/production.yml.enc. Its value is the contents
+    # of config/credentials/production.key, which is deliberately kept out of
+    # the image by .dockerignore.
+    RAILS_MASTER_KEY: ${RAILS_MASTER_KEY:?set RAILS_MASTER_KEY (contents of config/credentials/production.key)}
+    DB_HOST: db
+    DB_PORT: 5432
+    DB_USERNAME: ${POSTGRES_USER:-hp_inventory}
+    DB_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    # Primary database; db:prepare derives the solid_cache/queue/cable names
+    # from it (see the comment in config/database.yml).
+    DB_NAME: ${DB_NAME:-hp_inventory_production}
+    RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-3}
+    RAILS_LOG_LEVEL: ${RAILS_LOG_LEVEL:-info}
+  volumes:
+    # Active Storage uploads (config/storage.yml -> local disk service).
+    - storage:/rails/storage
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  db:
+    # Keep in sync with the Postgres accessory in config/deploy.yml.
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hp_inventory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-hp_inventory_production}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    # Not published to the host by default. Uncomment to allow local-only
+    # access for psql/backups; never bind this to a public interface.
+    # ports:
+    #   - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=${POSTGRES_USER:-hp_inventory}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Uses the image's default CMD (./bin/thrust ./bin/rails server), which makes
+  # bin/docker-entrypoint run db:prepare on boot -- migrations included.
+  web:
+    <<: *app
+    # Only this service declares the build. Two services sharing one image tag
+    # would make buildx export the same tag twice and fail, so jobs reuses what
+    # this builds -- `up --build` runs one build for both.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${WEB_PORT:-80}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/up || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  # Solid Queue worker. Kept separate from Puma so a job backlog cannot starve
+  # web requests; the alternative is SOLID_QUEUE_IN_PUMA=true and no jobs
+  # service (see config/puma.rb).
+  jobs:
+    <<: *app
+    command: ./bin/jobs
+    # Built by web, above; never fetched from a registry.
+    pull_policy: never
+    environment:
+      <<: *app_env
+      JOB_CONCURRENCY: ${JOB_CONCURRENCY:-1}
+      # Solid Queue needs (worker threads + 2) connections, and config/queue.yml
+      # configures 3 threads -- a pool of 3 makes it warn and throttle.
+      RAILS_MAX_THREADS: ${JOB_MAX_THREADS:-5}
+    depends_on:
+      db:
+        condition: service_healthy
+      # Waits for web to have run db:prepare, so the queue schema exists.
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres:
+  storage:

@@ -1,11 +1,18 @@
 # syntax=docker/dockerfile:1
 # check=error=true
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# docker build -t inventory .
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name inventory inventory
-
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+# This Dockerfile is designed for production, not development.
+#
+# Use it with Kamal (config/deploy.yml), with Compose:
+#
+#   docker compose --env-file .env.production -f compose.production.yaml up -d --build
+#
+# or build'n'run by hand:
+#
+#   docker build -t inventory .
+#   docker run -d -p 80:80 -e RAILS_MASTER_KEY=<config/credentials/production.key> --name inventory inventory
+#
+# For development, see Dockerfile.dev + compose.yaml (documented in README.md).
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version
 ARG RUBY_VERSION=3.4.8
@@ -32,11 +39,11 @@ FROM base AS build
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential git libvips libyaml-dev pkg-config && \
+    apt-get install --no-install-recommends -y build-essential git libpq-dev libvips libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
 # Install application gems
-COPY vendor/* ./vendor/
+COPY vendor/ ./vendor/
 COPY Gemfile Gemfile.lock ./
 
 RUN bundle install && \

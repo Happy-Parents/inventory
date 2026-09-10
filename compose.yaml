@@ -1,0 +1,84 @@
+# Development environment.
+#
+#   docker compose build
+#   docker compose up
+#
+# The app is served on http://localhost:3000 and the working tree is bind
+# mounted, so code changes take effect without a rebuild. Production lives in
+# compose.production.yaml. See README.md for the full command list.
+
+name: hp-inventory
+
+# Shared by every service that runs application code.
+x-app: &app
+  image: hp-inventory-dev
+  environment: &app_env
+    RAILS_ENV: development
+    # Matches the db service below. Overridable via a local .env file.
+    DB_HOST: db
+    DB_PORT: 5432
+    DB_USERNAME: ${POSTGRES_USER:-hp_inventory}
+    DB_PASSWORD: ${POSTGRES_PASSWORD:-hp_inventory}
+    RAILS_MAX_THREADS: ${RAILS_MAX_THREADS:-5}
+  volumes:
+    # The working tree, so edits are picked up live.
+    - .:/rails
+    # Anonymous volume: keeps the container's tmp/ (Bootsnap cache compiled for
+    # linux, tmp/pids/server.pid) from colliding with the host's.
+    - /rails/tmp
+  depends_on:
+    db:
+      condition: service_healthy
+  # Keeps `debug` usable via `docker compose attach web`.
+  stdin_open: true
+  tty: true
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hp_inventory}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hp_inventory}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      # Exposed on a non-default host port so it never fights a local Postgres.
+      # Connect from the host with: psql -h localhost -p 5433 -U hp_inventory
+      - "${DB_PORT_HOST:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=${POSTGRES_USER:-hp_inventory}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  web:
+    <<: *app
+    # Only this service declares the build. Two services sharing one image tag
+    # would make buildx export the same tag twice and fail, so admin_css just
+    # reuses what this builds.
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ./bin/rails server -b 0.0.0.0
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/up || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # Rebuilds app/assets/tailwind/active_admin.css on change. ActiveAdmin renders
+  # unstyled without it -- same pair of processes as Procfile.dev.
+  admin_css:
+    <<: *app
+    command: ./bin/rails active_admin:tailwind:watch
+    # Built by web, above; never fetched from a registry.
+    pull_policy: never
+    healthcheck:
+      disable: true
+
+volumes:
+  postgres:
