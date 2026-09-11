@@ -14,16 +14,28 @@ servers:
   #     - 192.168.0.1
   #   cmd: bin/jobs
 
-# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
-# If used with Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
+# TLS termination at kamal-proxy, paired with config.assume_ssl and
+# config.force_ssl in production.rb.
 #
-# Using an SSL proxy like this requires turning on config.assume_ssl and config.force_ssl in production.rb!
+# Let's Encrypt (`ssl: true`) is deliberately NOT used here. Kamal's automatic
+# certificates are validated over port 443, and this hostname is proxied by
+# Cloudflare, which terminates TLS at its own edge and never forwards the
+# challenge to this origin. So the certificate is supplied explicitly below and
+# Cloudflare re-encrypts to us.
 #
-# Don't use this when deploying to multiple web servers (then you have to terminate SSL at your load balancer).
-#
-# proxy:
-#   ssl: true
-#   host: app.example.com
+# Cloudflare's SSL/TLS mode must be "Full", or "Full (Strict)" once the
+# certificate here is issued by the Cloudflare Origin CA rather than self-signed.
+proxy:
+  host: inventory.happy-parents.ua
+
+  # Secret names, not values; resolved from .kamal/secrets.
+  ssl:
+    certificate_pem: TLS_CERTIFICATE_PEM
+    private_key_pem: TLS_PRIVATE_KEY_PEM
+
+  # kamal-proxy drops X-Forwarded-* once ssl is set, but Cloudflare sits in
+  # front of it as a trusted proxy, so keep the client IP and scheme it sends.
+  forward_headers: true
 
 # Where you keep your container images.
 registry:
