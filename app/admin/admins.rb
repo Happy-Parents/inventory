@@ -1,4 +1,6 @@
 ActiveAdmin.register Admin do
+  menu parent: I18n.t("active_admin.menu.settings"),
+       priority: 1
   permit_params :email, :role, :password, :password_confirmation
 
   index do

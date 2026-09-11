@@ -1,5 +1,6 @@
 ActiveAdmin.register Product do
-  menu priority: 1
+  menu parent: I18n.t("active_admin.menu.inventory"),
+       priority: 1
   permit_params :manufacturer_name, :name, :manufacturer_sku, :sku,
                 :brand_id, :category_id, :language, :site_status,
                 :packaging_condition, :hp_url, :notes,
