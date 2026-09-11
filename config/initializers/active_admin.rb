@@ -252,15 +252,13 @@ ActiveAdmin.setup do |config|
   #   end
 
   # == Pagination
-  #
-  # Pagination is enabled by default for all resources.
-  # You can control the default per page count for all resources here.
-  #
-  config.default_per_page = 500
-  #
-  # You can control the max per page count too.
-  #
-  # config.max_per_page = 10_000
+  config.default_per_page = 25
+  config.max_per_page = 500
+
+  # config.configure_resource do |resource|
+  #   resource.per_page = [10, 25, 50, 100]
+  # end
+
 
   # == Filters
   #
