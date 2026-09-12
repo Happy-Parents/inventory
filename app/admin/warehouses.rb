@@ -1,5 +1,6 @@
 ActiveAdmin.register Warehouse do
-  menu priority: 4
+  menu parent: I18n.t("active_admin.menu.inventory"),
+       priority: 4
   permit_params :name
 
   index do

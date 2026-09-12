@@ -1,5 +1,6 @@
 ActiveAdmin.register Brand do
-  menu priority: 3
+  menu parent: I18n.t("active_admin.menu.inventory"),
+       priority: 3
   permit_params :name
 
   index do

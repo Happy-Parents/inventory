@@ -123,24 +123,11 @@ ActiveAdmin.setup do |config|
   config.root_to = 'products#index'
 
   # == Admin Comments
-  #
-  # This allows your users to comment on any resource registered with Active Admin.
-  #
-  # You can completely disable comments:
-  # config.comments = false
-  #
-  # You can change the name under which comments are registered:
-  # config.comments_registration_name = 'AdminComment'
-  #
-  # You can change the order for the comments and you can change the column
-  # to be used for ordering:
+
+  config.comments = true
   config.comments_order = "created_at ASC"
-  #
-  # You can disable the menu item for the comments index page:
-  # config.comments_menu = false
-  #
-  # You can customize the comment menu:
-  # config.comments_menu = { parent: 'Admin', priority: 1 }
+  config.comments_menu = true # the menu item for the comments
+  config.comments_menu = { parent: 'налаштунки', priority: 2 }
 
   # == Batch Actions
   #
@@ -265,15 +252,13 @@ ActiveAdmin.setup do |config|
   #   end
 
   # == Pagination
-  #
-  # Pagination is enabled by default for all resources.
-  # You can control the default per page count for all resources here.
-  #
-  config.default_per_page = 500
-  #
-  # You can control the max per page count too.
-  #
-  # config.max_per_page = 10_000
+  config.default_per_page = 25
+  config.max_per_page = 500
+
+  # config.configure_resource do |resource|
+  #   resource.per_page = [10, 25, 50, 100]
+  # end
+
 
   # == Filters
   #

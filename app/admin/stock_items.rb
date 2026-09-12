@@ -1,5 +1,6 @@
 ActiveAdmin.register StockItem do
-  menu priority: 5
+  menu parent: I18n.t("active_admin.menu.inventory"),
+       priority: 5
   permit_params :product_id, :warehouse_id, :quantity, :damaged_quantity
 
   index do

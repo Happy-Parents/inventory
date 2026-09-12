@@ -4,3 +4,6 @@ uk:
     edit: "✏️"
     delete: "❌"
     stock: "Залишки"
+    menu:
+      inventory: "Склад"
+      settings: "Налаштунки"
