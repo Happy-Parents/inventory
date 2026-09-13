@@ -40,3 +40,9 @@
 # Legacy SQLite databases (migrated to PostgreSQL); keep any stragglers out of git.
 /storage/*.sqlite3
 /storage/*.sqlite3-*
+
+# Origin TLS key material for kamal-proxy. The certificate itself is public and
+# committed in the clear; only a decrypted private key must never be committed.
+# `encrypted:edit` writes one to a temp file while the editor is open, and
+# origin.key.enc does not match this glob.
+/config/tls/*.key
