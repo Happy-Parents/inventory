@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# Runs automatically before every `kamal deploy` / `redeploy` / `rollback`.
+#
+# Kamal only treats a file as a hook if it exists at .kamal/hooks/<name> with
+# no extension -- the shipped *.sample files are inert. A non-zero exit here
+# raises HookError and aborts the deploy before the new container boots.
+#
+# Skip it for a one-off with: bin/kamal deploy --skip-hooks
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
+
+echo "Running pre-deploy checks..."
+exec bin/preflight --remote

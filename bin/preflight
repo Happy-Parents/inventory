@@ -154,7 +154,9 @@ fi
 # ---------------------------------------------------------------------------
 section "Kamal configuration"
 # ---------------------------------------------------------------------------
-if bin/kamal config > "$WORK/kamal.yml" 2>"$WORK/kamal.err"; then
+if [ -n "${KAMAL_VERSION:-}" ]; then
+  pass "skipped -- running inside a Kamal hook, which means Kamal already parsed it"
+elif bin/kamal config > "$WORK/kamal.yml" 2>"$WORK/kamal.err"; then
   pass "deploy.yml parses ($(grep -c . "$WORK/kamal.yml") lines of resolved config)"
 else
   fail "bin/kamal config failed:"
@@ -181,23 +183,33 @@ section "Server"
   else
     pass "ssh to $SSH_USER@$HOST"
 
+    DB_UP=no
     for c in inventory-db kamal-proxy; do
       if [ "$("${SSH[@]}" "docker inspect -f '{{.State.Running}}' $c" 2>/dev/null)" = "true" ]; then
         pass "$c is running"
+        [ "$c" = inventory-db ] && DB_UP=yes
       else
-        fail "$c is NOT running"
+        # Not yet deployed, or mid-bootstrap. The deploy boots these itself,
+        # so this must not block it.
+        warn "$c is not running (expected on a first deploy)"
       fi
     done
 
     # The database password is the one secret whose correctness cannot be
     # judged locally: it has to be the one the Postgres role actually holds.
-    PW=$(RAILS_ENV=production bin/rails credentials:fetch kamal.postgres_password 2>/dev/null | tail -1)
-    if [ -n "$PW" ] && "${SSH[@]}" \
-        "docker exec -e PGPASSWORD='$PW' inventory-db psql -h 127.0.0.1 -U hp_inventory -d hp_inventory_production -tAc 'select 1'" \
-        >/dev/null 2>&1; then
-      pass "kamal.postgres_password authenticates against the live database"
+    # Rotating it in credentials without an ALTER ROLE breaks the app on the
+    # next deploy, and nothing local would notice.
+    if [ "$DB_UP" != yes ]; then
+      warn "skipping database auth check -- inventory-db is not running"
     else
-      fail "kamal.postgres_password does NOT authenticate -- deploy would break the app"
+      PW=$(RAILS_ENV=production bin/rails credentials:fetch kamal.postgres_password 2>/dev/null | tail -1)
+      if [ -n "$PW" ] && "${SSH[@]}" \
+          "docker exec -e PGPASSWORD='$PW' inventory-db psql -h 127.0.0.1 -U hp_inventory -d hp_inventory_production -tAc 'select 1'" \
+          >/dev/null 2>&1; then
+        pass "kamal.postgres_password authenticates against the live database"
+      else
+        fail "kamal.postgres_password does NOT authenticate -- deploy would break the app"
+      fi
     fi
 
     # Backups are easy to forget about until the day they are needed.
