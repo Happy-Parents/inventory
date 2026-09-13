@@ -1,0 +1,236 @@
+#!/usr/bin/env bash
+#
+# Pre-deploy checks. Run before bin/kamal deploy.
+#
+#   bin/preflight            # local checks only
+#   bin/preflight --remote   # ...plus the server and backup system
+#
+# Exists because the failures worth catching are the ones that are invisible
+# until a deploy is already underway. A malformed credentials file still
+# decrypts and still prints, so `credentials:show` looks fine while every
+# lookup inside it raises; Kamal then injects empty strings and the new
+# container dies on image pull or database auth. Everything here is read-only.
+
+set -uo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+if [ -t 1 ]; then
+  G=$'\033[32m'; R=$'\033[31m'; Y=$'\033[33m'; B=$'\033[1m'; N=$'\033[0m'
+else
+  G=""; R=""; Y=""; B=""; N=""
+fi
+
+FAILURES=0
+WARNINGS=0
+pass() { printf "  ${G}PASS${N}  %s\n" "$1"; }
+fail() { printf "  ${R}FAIL${N}  %s\n" "$1"; FAILURES=$((FAILURES + 1)); }
+warn() { printf "  ${Y}WARN${N}  %s\n" "$1"; WARNINGS=$((WARNINGS + 1)); }
+section() { printf "\n${B}%s${N}\n" "$1"; }
+
+REMOTE=no
+[ "${1:-}" = "--remote" ] && REMOTE=yes
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+
+# ---------------------------------------------------------------------------
+section "Secrets resolve"
+# ---------------------------------------------------------------------------
+# The authoritative check: source .kamal/secrets exactly as Kamal does and
+# confirm nothing came back empty. Lengths only are reported -- never values.
+(
+  set -a
+  # shellcheck disable=SC1091
+  . .kamal/secrets
+  set +a
+  for v in RAILS_MASTER_KEY KAMAL_REGISTRY_USERNAME KAMAL_REGISTRY_PASSWORD \
+           POSTGRES_PASSWORD DB_PASSWORD TLS_CERTIFICATE_PEM TLS_PRIVATE_KEY_PEM; do
+    eval "val=\${$v:-}"
+    printf '%s %s\n' "$v" "${#val}"
+  done
+) > "$WORK/secrets" 2>"$WORK/secrets.err"
+
+if [ ! -s "$WORK/secrets" ]; then
+  fail ".kamal/secrets could not be sourced at all"
+  sed 's/^/        /' "$WORK/secrets.err" | head -5
+else
+  while read -r name len; do
+    if [ "$len" -gt 0 ]; then
+      pass "$name ($len chars)"
+    else
+      fail "$name is EMPTY -- deploy would inject a blank value"
+    fi
+  done < "$WORK/secrets"
+fi
+
+# Anything on stderr here usually means a credentials lookup raised.
+if [ -s "$WORK/secrets.err" ] && grep -qiE "error|missing|invalid|Psych" "$WORK/secrets.err"; then
+  fail "errors while resolving secrets:"
+  # Keep the message, drop the backtrace and the ruby file:line prefix.
+  grep -iE "error|missing|invalid|Psych" "$WORK/secrets.err" \
+    | grep -v "^[[:space:]]*from " \
+    | sed -E "s|^.*/[a-z_]+\\.rb:[0-9]+:in '[^']*': ||" \
+    | awk '!seen[$0]++' | head -2 | sed 's/^/        /'
+fi
+
+# ---------------------------------------------------------------------------
+section "Production credentials are well-formed"
+# ---------------------------------------------------------------------------
+# credentials:show prints raw decrypted text without parsing it, so a file
+# mangled by a stray keystroke looks healthy here. Parse it explicitly.
+RAILS_ENV=production bin/rails credentials:show > "$WORK/creds.yml" 2>/dev/null
+if [ ! -s "$WORK/creds.yml" ]; then
+  fail "could not decrypt production credentials"
+else
+  ruby -ryaml -e '
+    required = ["secret_key_base", "kamal.postgres_password",
+                "kamal.registry_username", "kamal.registry_password"]
+    begin
+      doc = YAML.unsafe_load_file(ARGV[0]) || {}
+    rescue => e
+      puts "PARSE #{e.message.lines.first.strip}"
+      exit 1
+    end
+    puts "OK"
+    required.each do |path|
+      value = path.split(".").reduce(doc) { |acc, k| acc.is_a?(Hash) ? acc[k] : nil }
+      puts "#{value.to_s.empty? ? "MISSING" : "HAS"} #{path}"
+    end
+  ' "$WORK/creds.yml" > "$WORK/creds.check" 2>&1
+
+  if grep -q "^PARSE" "$WORK/creds.check"; then
+    fail "YAML is invalid: $(sed -n 's/^PARSE //p' "$WORK/creds.check" | sed -E 's|^\(/[^)]*\): ||')"
+    fail "every credentials lookup will raise -- fix before deploying"
+  else
+    pass "YAML parses"
+    while read -r status path; do
+      case "$status" in
+        HAS)     pass "$path present" ;;
+        MISSING) fail "$path missing or empty" ;;
+      esac
+    done < <(grep -E "^(HAS|MISSING) " "$WORK/creds.check")
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+section "Origin TLS material"
+# ---------------------------------------------------------------------------
+CRT=config/tls/origin.crt
+if [ ! -r "$CRT" ]; then
+  fail "$CRT is missing"
+elif ! openssl x509 -in "$CRT" -noout 2>/dev/null; then
+  fail "$CRT is not a valid certificate"
+else
+  pass "certificate parses ($(openssl x509 -in "$CRT" -noout -enddate | cut -d= -f2))"
+
+  if openssl x509 -in "$CRT" -noout -checkend 0 >/dev/null 2>&1; then
+    if ! openssl x509 -in "$CRT" -noout -checkend 2592000 >/dev/null 2>&1; then
+      warn "certificate expires within 30 days"
+    fi
+  else
+    fail "certificate has EXPIRED"
+  fi
+
+  # Decrypt the key to a private temp file only long enough to compare the
+  # public halves; a mismatched pair makes kamal-proxy refuse to serve TLS.
+  ( umask 077
+    bin/rails encrypted:show config/tls/origin.key.enc \
+      --key config/credentials/production.key > "$WORK/origin.key" 2>/dev/null )
+  if [ ! -s "$WORK/origin.key" ]; then
+    fail "config/tls/origin.key.enc did not decrypt"
+  else
+    CERT_PUB=$(openssl x509 -in "$CRT" -noout -pubkey 2>/dev/null)
+    KEY_PUB=$(openssl pkey -in "$WORK/origin.key" -pubout 2>/dev/null)
+    if [ -n "$KEY_PUB" ] && [ "$CERT_PUB" = "$KEY_PUB" ]; then
+      pass "private key decrypts and matches the certificate"
+    else
+      fail "private key does NOT match the certificate"
+    fi
+  fi
+  rm -f "$WORK/origin.key"
+fi
+
+# ---------------------------------------------------------------------------
+section "Kamal configuration"
+# ---------------------------------------------------------------------------
+if bin/kamal config > "$WORK/kamal.yml" 2>"$WORK/kamal.err"; then
+  pass "deploy.yml parses ($(grep -c . "$WORK/kamal.yml") lines of resolved config)"
+else
+  fail "bin/kamal config failed:"
+  head -3 "$WORK/kamal.err" | sed 's/^/        /'
+fi
+
+# ---------------------------------------------------------------------------
+if [ "$REMOTE" = yes ]; then
+section "Server"
+# ---------------------------------------------------------------------------
+  read -r HOST SSH_USER KEY_RAW < <(
+    ruby -ryaml -e '
+      c = YAML.load_file("config/deploy.yml")
+      puts [c.dig("accessories", "db", "host"),
+            c.dig("ssh", "user"),
+            c.dig("ssh", "keys").first].join(" ")
+    '
+  )
+  KEY="${KEY_RAW/#\~/$HOME}"
+  SSH=(ssh -i "$KEY" -o BatchMode=yes -o ConnectTimeout=10 "$SSH_USER@$HOST")
+
+  if ! "${SSH[@]}" true 2>/dev/null; then
+    fail "cannot ssh to $SSH_USER@$HOST"
+  else
+    pass "ssh to $SSH_USER@$HOST"
+
+    for c in inventory-db kamal-proxy; do
+      if [ "$("${SSH[@]}" "docker inspect -f '{{.State.Running}}' $c" 2>/dev/null)" = "true" ]; then
+        pass "$c is running"
+      else
+        fail "$c is NOT running"
+      fi
+    done
+
+    # The database password is the one secret whose correctness cannot be
+    # judged locally: it has to be the one the Postgres role actually holds.
+    PW=$(RAILS_ENV=production bin/rails credentials:fetch kamal.postgres_password 2>/dev/null | tail -1)
+    if [ -n "$PW" ] && "${SSH[@]}" \
+        "docker exec -e PGPASSWORD='$PW' inventory-db psql -h 127.0.0.1 -U hp_inventory -d hp_inventory_production -tAc 'select 1'" \
+        >/dev/null 2>&1; then
+      pass "kamal.postgres_password authenticates against the live database"
+    else
+      fail "kamal.postgres_password does NOT authenticate -- deploy would break the app"
+    fi
+
+    # Backups are easy to forget about until the day they are needed.
+    LATEST=$("${SSH[@]}" "/home/$SSH_USER/bin/rclone lsf 'Cloudflare R2 db backups:hp-inventory-db-backups/daily/' 2>/dev/null | sort | tail -1" 2>/dev/null)
+    if [ -z "$LATEST" ]; then
+      warn "no database backups found in R2"
+    else
+      STAMP=$(echo "$LATEST" | sed -E 's/.*-([0-9]{8})T([0-9]{6})Z\.dump$/\1 \2/')
+      AGE=$(ruby -rtime -e '
+        d, t = ARGV[0].split
+        stamp = Time.utc(d[0,4].to_i, d[4,2].to_i, d[6,2].to_i, t[0,2].to_i, t[2,2].to_i, t[4,2].to_i)
+        puts ((Time.now.utc - stamp) / 3600).round
+      ' "$STAMP" 2>/dev/null)
+      if [ -n "$AGE" ] && [ "$AGE" -le 48 ]; then
+        pass "newest database backup is ${AGE}h old"
+      else
+        warn "newest database backup is ${AGE:-?}h old"
+      fi
+    fi
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+printf "\n"
+if [ "$FAILURES" -gt 0 ]; then
+  printf "${R}${B}%d check(s) failed${N}" "$FAILURES"
+  [ "$WARNINGS" -gt 0 ] && printf ", %d warning(s)" "$WARNINGS"
+  printf " -- do NOT deploy\n\n"
+  exit 1
+fi
+if [ "$WARNINGS" -gt 0 ]; then
+  printf "${Y}${B}All checks passed with %d warning(s)${N}\n\n" "$WARNINGS"
+else
+  printf "${G}${B}All checks passed${N}\n\n"
+fi
+[ "$REMOTE" = yes ] || printf "Run with --remote to also check the server and backups.\n\n"
