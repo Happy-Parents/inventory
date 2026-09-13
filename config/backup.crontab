@@ -1,0 +1,23 @@
+# Production database backups -- MANAGED FILE.
+#
+# Installed wholesale by bin/backup-install; anything added here by hand on the
+# server is overwritten on the next install. Edit it in the repo instead.
+#
+# Times are the server's local clock, which is Europe/Kyiv. Backup filenames
+# are stamped in UTC, so they stay unambiguous across DST changes.
+
+# No MTA is installed, so let cron discard job output rather than trying to
+# mail it. The real reporting channel is Healthchecks.io; the log files below
+# are for after-the-fact reading.
+MAILTO=""
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# Nightly dump to Cloudflare R2, 02:15 local.
+15 2 * * * /home/deployer/backup/backup-db.sh >> /home/deployer/backup/backup.log 2>&1
+
+# Weekly proof that the newest dump actually restores, Sundays 03:30 local.
+30 3 * * 0 /home/deployer/backup/verify-backup.sh >> /home/deployer/backup/verify.log 2>&1
+
+# Keep the logs from growing without bound. They gain a few lines a day, so
+# this effectively never fires -- it is here so it cannot be forgotten.
+0 4 1 * * /usr/bin/find /home/deployer/backup -name '*.log' -size +5M -exec truncate -s 0 {} \;

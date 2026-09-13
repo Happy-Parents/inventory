@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+#
+# Install (or reinstall) the production database backup system on the VPS.
+#
+#   bin/backup-install          # push scripts, secrets and crontab
+#   bin/backup-install --test   # ...and immediately run one backup
+#
+# Idempotent and safe to re-run: it is also how to rebuild backups on a fresh
+# server after a rebuild. Target host, SSH user and key all come from
+# config/deploy.yml, so there is one source of truth for where "production" is.
+
+set -Eeuo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+RUN_TEST=no
+[ "${1:-}" = "--test" ] && RUN_TEST=yes
+
+read -r HOST USER_NAME KEY_RAW < <(
+  ruby -ryaml -e '
+    c = YAML.load_file("config/deploy.yml")
+    puts [c.dig("accessories", "db", "host"),
+          c.dig("ssh", "user"),
+          c.dig("ssh", "keys").first].join(" ")
+  '
+)
+KEY="${KEY_RAW/#\~/$HOME}"
+REMOTE_HOME="/home/$USER_NAME"
+DEST="$REMOTE_HOME/backup"
+SSH=(ssh -i "$KEY" -o BatchMode=yes "$USER_NAME@$HOST")
+
+echo "==> target: $USER_NAME@$HOST:$DEST"
+
+echo "==> preflight"
+"${SSH[@]}" true || { echo "cannot ssh to $HOST" >&2; exit 1; }
+
+# rclone 1.60, which Ubuntu ships, returns 501 NotImplemented on every R2
+# upload. Refuse to install a backup system on top of a binary that cannot
+# reliably write to the bucket.
+RCLONE_BIN=$("${SSH[@]}" 'echo $HOME/bin/rclone')
+RCLONE_VER=$("${SSH[@]}" "$RCLONE_BIN version 2>/dev/null | head -1 | awk '{print \$2}'" || true)
+case "$RCLONE_VER" in
+  v1.6[1-9]*|v1.[7-9][0-9]*|v[2-9]*) echo "    rclone $RCLONE_VER at $RCLONE_BIN" ;;
+  "") echo "no rclone at $RCLONE_BIN on the server" >&2; exit 1 ;;
+  *)  echo "rclone $RCLONE_VER is too old for Cloudflare R2; need >= v1.61" >&2; exit 1 ;;
+esac
+
+"${SSH[@]}" 'docker inspect -f "{{.State.Running}}" inventory-db' >/dev/null \
+  || { echo "inventory-db container is not running" >&2; exit 1; }
+echo "    inventory-db is up"
+
+echo "==> pushing scripts"
+"${SSH[@]}" "mkdir -p '$DEST' && chmod 700 '$DEST'"
+scp -q -i "$KEY" script/backup-config.sh "$USER_NAME@$HOST:$DEST/config.sh"
+scp -q -i "$KEY" script/backup-db.sh script/verify-backup.sh script/restore-db.sh \
+  "$USER_NAME@$HOST:$DEST/"
+"${SSH[@]}" "chmod 700 '$DEST'/*.sh && chmod 600 '$DEST/config.sh'"
+
+echo "==> writing secrets.env"
+
+BACKUP_URL=$(RAILS_ENV=production bin/rails credentials:fetch kamal.healthchecks_backup_url)
+VERIFY_URL=$(RAILS_ENV=production bin/rails credentials:fetch kamal.healthchecks_verify_url)
+[ -n "$BACKUP_URL" ] && [ -n "$VERIFY_URL" ] \
+  || { echo "healthchecks URLs missing from credentials" >&2; exit 1; }
+
+"${SSH[@]}" "umask 077 && cat > '$DEST/secrets.env'" <<SECRETS
+# Written by bin/backup-install from config/credentials/production.yml.enc.
+# Do not edit here -- changes are overwritten on the next install.
+HEALTHCHECKS_BACKUP_URL=$BACKUP_URL
+HEALTHCHECKS_VERIFY_URL=$VERIFY_URL
+SECRETS
+"${SSH[@]}" "chmod 600 '$DEST/secrets.env'"
+
+echo "==> installing crontab"
+# Keep a copy of whatever was there, so an install can never silently discard
+# an unrelated job somebody added by hand.
+"${SSH[@]}" "crontab -l > '$DEST/crontab.previous' 2>/dev/null || true"
+PREV=$("${SSH[@]}" "grep -cvE '^\s*(#|\$)' '$DEST/crontab.previous' 2>/dev/null || true")
+"${SSH[@]}" 'crontab -' < config/backup.crontab
+echo "    installed (previous crontab had $PREV entries, saved to $DEST/crontab.previous)"
+
+echo "==> installed:"
+"${SSH[@]}" "ls -la '$DEST' && echo && crontab -l | grep -vE '^\s*#' | grep -vE '^\s*$'"
+
+if [ "$RUN_TEST" = yes ]; then
+  echo
+  echo "==> running one backup now"
+  "${SSH[@]}" "$DEST/backup-db.sh"
+fi
