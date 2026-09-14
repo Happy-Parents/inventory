@@ -1,11 +1,10 @@
 require 'spec_helper'
-require 'factory_bot_rails'
-require 'shoulda_matchers'
 ENV['RAILS_ENV'] ||= 'test'
 require_relative '../config/environment'
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 return unless Rails.env.test?
 require 'rspec/rails'
+require 'shoulda-matchers'
 Rails.root.glob('spec/support/**/*.rb').sort_by(&:to_s).each { |f| require f }
 begin
   ActiveRecord::Migration.maintain_test_schema!
@@ -14,7 +13,6 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 RSpec.configure do |config|
   config.use_transactional_fixtures = true
-  config.factory_bot.file_fixture_support = false
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!
 end
