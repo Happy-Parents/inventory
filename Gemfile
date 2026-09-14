@@ -29,10 +29,8 @@ gem 'kamal', '>= 2.12', require: false
 gem 'thruster', '>= 0.1.26', require: false
 gem "image_processing", "~> 1.2"
 
-
-
-
 group :development, :test do
+  gem 'awesome_print', '>= 1.9.2'
   gem "bundler-audit", require: false
   gem "brakeman", require: false
 end
