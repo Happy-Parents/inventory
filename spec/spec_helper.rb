@@ -15,7 +15,7 @@ end
   config.disable_monkey_patching!
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
-  config.profile_examples = 10
+  config.profile_examples = 0
   config.order = :random
   Kernel.srand config.seed
 end
