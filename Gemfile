@@ -30,9 +30,19 @@ gem 'thruster', '>= 0.1.26', require: false
 gem "image_processing", "~> 1.2"
 
 group :development, :test do
+  gem 'bullet', '>= 8.2'
+  gem 'ffaker', '>= 2.25'
   gem 'awesome_print', '>= 1.9.2'
   gem "bundler-audit", require: false
   gem "brakeman", require: false
+  gem 'factory_bot_rails', '>= 6.5.1'
 end
 
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+group :test do
+  gem 'rspec-rails', '>= 8.0.4'
+  gem 'shoulda-matchers', '>= 8.0.1'
+  gem 'pundit-matchers', '>= 4.0'
+end
+group :development do
+  gem "tzinfo-data", platforms: %i[ windows jruby ]
+end
