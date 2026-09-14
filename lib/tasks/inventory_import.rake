@@ -1,28 +1,28 @@
 namespace :inventory do
-  desc "Import inventory data from data_source/inventory-state.csv into the DB. " \
-       "Override the file with CSV_PATH=/path/to.csv"
+  desc 'Import inventory data from data_source/inventory-state.csv into the DB. ' \
+       'Override the file with CSV_PATH=/path/to.csv'
   task import: :environment do
-    require "csv"
+    require 'csv'
 
-    csv_path = ENV["CSV_PATH"] || Rails.root.join("data_source", "inventory-state.csv")
+    csv_path = ENV['CSV_PATH'] || Rails.root.join('data_source', 'inventory-state.csv')
     abort "CSV not found at #{csv_path}" unless File.exist?(csv_path)
 
     # --- CSV column headers (Ukrainian) ---------------------------------------
-    H_BRAND        = "ТМ"                 # trademark / brand
-    H_MFR_NAME     = "Назва виробника"    # manufacturer's product name
-    H_SITE_NAME    = "Назва на сайті"     # name shown on the website
-    H_MFR_SKU      = "Арт. зовн."         # external article  -> manufacturer_sku
-    H_SKU          = "Арт. внутр."        # internal article  -> sku
-    H_QTY          = "Кількість"          # quantity on hand
-    H_CATEGORY     = "Категорія"          # category
-    H_PACKAGING    = "Пакування"          # packaging condition
-    H_SITE_STATUS  = "Наявність на сайті" # website publish status
-    H_LANGUAGE     = "Мова"               # product language
-    H_NOTES        = "Нотатки"            # free-text notes
-    H_WAREHOUSE    = "Склад"              # warehouse
+    H_BRAND        = 'ТМ'                 # trademark / brand
+    H_MFR_NAME     = 'Назва виробника'    # manufacturer's product name
+    H_SITE_NAME    = 'Назва на сайті'     # name shown on the website
+    H_MFR_SKU      = 'Арт. зовн.'         # external article  -> manufacturer_sku
+    H_SKU          = 'Арт. внутр.'        # internal article  -> sku
+    H_QTY          = 'Кількість'          # quantity on hand
+    H_CATEGORY     = 'Категорія'          # category
+    H_PACKAGING    = 'Пакування'          # packaging condition
+    H_SITE_STATUS  = 'Наявність на сайті' # website publish status
+    H_LANGUAGE     = 'Мова'               # product language
+    H_NOTES        = 'Нотатки'            # free-text notes
+    H_WAREHOUSE    = 'Склад'              # warehouse
 
     # Source placeholder tokens that mean "not decided yet" -> treat as absent.
-    PLACEHOLDERS = [ "визначити", "перевірити" ].freeze
+    PLACEHOLDERS = [ 'визначити', 'перевірити' ].freeze
 
     norm = ->(v) { v.to_s.strip.presence }
 
@@ -59,8 +59,8 @@ namespace :inventory do
       return :needs_review if v.nil?
 
       case v
-      when "є"    then :published
-      when "нема" then :not_published
+      when 'є'    then :published
+      when 'нема' then :not_published
       else :needs_review # "перевірити", "перевірити на буплікацію ...", etc.
       end
     end
@@ -117,10 +117,10 @@ namespace :inventory do
         # A "є" row can't be published without name + hp_url (never in the CSV).
         # Downgrade to needs_review and record why, so no data is lost.
         if product.published? && !product.valid?
-          reason = "source marked available on site (є) but missing " \
+          reason = 'source marked available on site (є) but missing ' \
                    "#{[ product.errors.key?(:name) ? 'site name' : nil, 'hp_url' ].compact.join(' and ')}"
           product.site_status = :needs_review
-          product.notes = [ product.notes, "[import] #{reason}" ].compact.join(" | ")
+          product.notes = [ product.notes, "[import] #{reason}" ].compact.join(' | ')
           stats[:downgraded_from_published] += 1
           warnings << "line #{line}: #{reason} — set to needs_review"
         end
@@ -147,10 +147,10 @@ namespace :inventory do
     end
 
     puts "\nInventory import complete (#{csv_path})"
-    puts "-" * 60
+    puts '-' * 60
     %i[products_created products_updated stock_items downgraded_from_published
        products_without_warehouse skipped_no_name errors].each do |k|
-      puts format("  %-28s %d", k, stats[k])
+      puts format('  %-28s %d', k, stats[k])
     end
     puts "  #{Brand.count} brands, #{Category.count} categories, #{Warehouse.count} warehouses"
 

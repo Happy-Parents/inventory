@@ -1,7 +1,7 @@
 ActiveAdmin.register Product do
-  config.per_page = [10, 25, 50, 100, 500]
+  config.per_page = [ 10, 25, 50, 100, 500 ]
 
-  menu parent: I18n.t("active_admin.menu.inventory"),
+  menu parent: I18n.t('active_admin.menu.inventory'),
        priority: 1
   permit_params :manufacturer_name, :name, :manufacturer_sku, :sku,
                 :brand_id, :category_id, :language, :site_status,
@@ -56,8 +56,8 @@ ActiveAdmin.register Product do
       f.input :notes
     end
 
-    f.inputs I18n.t("active_admin.stock") do
-      f.has_many :stock_items, heading: false, allow_destroy: true, new_record: "Add stock" do |si|
+    f.inputs I18n.t('active_admin.stock') do
+      f.has_many :stock_items, heading: false, allow_destroy: true, new_record: 'Add stock' do |si|
         si.input :warehouse
         si.input :quantity
         si.input :damaged_quantity
@@ -81,12 +81,12 @@ ActiveAdmin.register Product do
       row(:packaging_condition) { |product| product.packaging_condition_label }
       row :hp_url
       row :notes
-      row("Total quantity") { |product| product.total_quantity }
+      row('Total quantity') { |product| product.total_quantity }
       row :created_at
       row :updated_at
     end
 
-    panel I18n.t("active_admin.stock") do
+    panel I18n.t('active_admin.stock') do
       table_for product.stock_items do
         column :warehouse
         column :quantity

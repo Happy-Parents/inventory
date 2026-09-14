@@ -10,19 +10,19 @@ class Product < ApplicationRecord
   accepts_nested_attributes_for :stock_items, allow_destroy: true
 
   enum :language, {
-    ukrainian: "ukrainian",
-    russian: "russian",
-    english: "english",
-    unknown: "unknown",
-    not_applicable: "not applicable"
+    ukrainian: 'ukrainian',
+    russian: 'russian',
+    english: 'english',
+    unknown: 'unknown',
+    not_applicable: 'not applicable'
   },
   default: :unknown
 
   enum :site_status, {
-    published: "published", not_published: "not_published", needs_review: "needs_review"
+    published: 'published', not_published: 'not_published', needs_review: 'needs_review'
   }, default: :needs_review
 
-  enum :packaging_condition, { ok: "ok", damaged: "damaged" }, default: :ok
+  enum :packaging_condition, { ok: 'ok', damaged: 'damaged' }, default: :ok
 
   validates :manufacturer_name, presence: true
   validates :hp_url, presence: true, if: :published?

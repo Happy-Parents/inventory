@@ -9,6 +9,6 @@ class Admin < ApplicationRecord
     %w[encrypted_password reset_password_token]
   end
 
-  enum :role, { manager: "manager", super_admin: "super admin" }, default: :manager
+  enum :role, { manager: 'manager', super_admin: 'super admin' }, default: :manager
   def role_condition_label = self.class.human_enum(:role, role)
 end
