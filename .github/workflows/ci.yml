@@ -109,6 +109,12 @@ jobs:
         with:
           bundler-cache: true
 
+      # No RAILS_MASTER_KEY here on purpose. The suite needs no decrypted
+      # credential -- the database ones arrive as DB_* below, and in the test
+      # environment Rails falls back to a throwaway generated secret_key_base
+      # when no key is present. Handing it a key that does not open
+      # config/credentials.yml.enc (or that a fork's pull request cannot see
+      # at all) is the only way this step can fail on credentials.
       - name: Run tests
         env:
           RAILS_ENV: test
@@ -116,7 +122,6 @@ jobs:
           DB_PORT: 5432
           DB_USERNAME: hp_inventory
           DB_PASSWORD: postgres
-          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
         run: |
           bin/rails db:test:prepare
           bundle exec rspec
