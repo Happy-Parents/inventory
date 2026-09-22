@@ -17,6 +17,17 @@ push:
 Brakeman and the importmap audit have no pre-push counterpart on purpose: they
 are slow enough to be annoying on a push, and cheap enough to always run here.
 
+No job on this workflow takes a repository secret. `Test (RSpec)` gets its
+database credentials from the `DB_*` variables the Postgres service is started
+with, and Rails makes up a throwaway `secret_key_base` in the test environment
+when no `config/master.key` and no `RAILS_MASTER_KEY` are around -- so nothing
+here has to decrypt `config/credentials.yml.enc`. Handing the job a key is not
+just unnecessary, it is a way to break it: the wrong key aborts the boot with
+`ActiveSupport::MessageEncryptor::InvalidMessage`, and a pull request from a
+fork cannot read secrets at all. The `RAILS_MASTER_KEY` secret this repository
+does hold is `config/credentials/production.key` (see README), which by design
+does not open `config/credentials.yml.enc`; it belongs to the deploy workflow.
+
 The check run name is the job's `name:`. **Renaming a job renames the status
 check, and a required check that no longer reports blocks every merge** — update
 the ruleset below in the same change.
