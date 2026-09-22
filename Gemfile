@@ -24,7 +24,7 @@ gem 'tailwindcss-ruby', '~> 4.0'
 gem 'turbo-rails', '>= 2.0.23'
 
 # Server Provisioning
-gem 'image_processing', '~> 1.2'
+gem 'image_processing', '~> 2.1'
 gem 'kamal', '>= 2.12', require: false
 gem 'thruster', '>= 0.1.26', require: false
 
