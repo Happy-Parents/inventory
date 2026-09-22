@@ -43,7 +43,9 @@ group :test do
   gem 'shoulda-matchers', '>= 8.0.1'
 end
 group :development do
+  gem 'i18n-tasks', '>= 1.1.2'
   gem 'annotaterb', '>= 4.24'
+  gem 'overcommit', '>= 0.73.0'
   gem 'rubocop-factory_bot', '>= 2.28'
   gem 'rubocop-faker', '>= 1.3'
   gem 'rubocop-i18n', '>= 3.3'
