@@ -1,0 +1,125 @@
+# Manual production deploy: the CI equivalent of running `bin/kamal deploy`
+# from a laptop. Same command, same config/deploy.yml, same .kamal/secrets --
+# the only difference is where the two local-only inputs come from. The SSH
+# key and config/credentials/production.key are gitignored, so they arrive as
+# repository secrets and are written back into the places deploy.yml and
+# .kamal/secrets already expect to find them.
+#
+# Run it from Actions -> Deploy -> Run workflow. The "Use workflow from"
+# dropdown only picks which copy of *this file* runs; what actually ships is
+# the `branch` input below.
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch (or tag / SHA) to deploy'
+        required: true
+        default: main
+        type: string
+
+# One deploy at a time, and never cancel one in flight -- an interrupted
+# rollout leaves kamal-proxy pointing at a half-booted container.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy (Kamal)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    # Lets the repo require an approval or restrict deploys to specific
+    # branches later, from Settings -> Environments, without touching this file.
+    environment:
+      name: production
+      url: https://inventory.happy-parents.ua
+
+    steps:
+      - name: Checkout ${{ inputs.branch }}
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      # Everything in .kamal/secrets ultimately unlocks with this one file:
+      # the registry PAT, the database password and the origin TLS key all
+      # live in config/credentials/production.yml.enc.
+      - name: Restore the production credentials key
+        env:
+          RAILS_PRODUCTION_KEY: ${{ secrets.RAILS_PRODUCTION_KEY }}
+        run: |
+          if [ -z "${RAILS_PRODUCTION_KEY}" ]; then
+            echo "::error::Repository secret RAILS_PRODUCTION_KEY is not set (contents of config/credentials/production.key)"
+            exit 1
+          fi
+          umask 077
+          # No trailing newline: this file is read verbatim as RAILS_MASTER_KEY.
+          printf '%s' "${RAILS_PRODUCTION_KEY}" > config/credentials/production.key
+
+      # deploy.yml pins ssh.keys to ~/.ssh/koi_vps_deployer, so the file has to
+      # land under that exact name. bin/preflight --remote reads the same path
+      # out of deploy.yml when it opens its own SSH connection.
+      - name: Configure SSH for the deployer account
+        env:
+          KAMAL_SSH_PRIVATE_KEY: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+          KAMAL_SSH_KNOWN_HOSTS: ${{ secrets.KAMAL_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${KAMAL_SSH_PRIVATE_KEY}" ]; then
+            echo "::error::Repository secret KAMAL_SSH_PRIVATE_KEY is not set (private half of ~/.ssh/koi_vps_deployer)"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "${KAMAL_SSH_PRIVATE_KEY}" > ~/.ssh/koi_vps_deployer
+          chmod 600 ~/.ssh/koi_vps_deployer
+
+          # Kamal connects with net-ssh, which verifies host keys, and preflight
+          # ssh's with BatchMode=yes -- both need known_hosts populated up front.
+          if [ -n "${KAMAL_SSH_KNOWN_HOSTS}" ]; then
+            printf '%s\n' "${KAMAL_SSH_KNOWN_HOSTS}" >> ~/.ssh/known_hosts
+          else
+            echo "::warning::KAMAL_SSH_KNOWN_HOSTS is not set -- trusting whatever answers on first connection (ssh-keyscan)"
+            ruby -ryaml -e '
+              config = YAML.load_file("config/deploy.yml")
+              hosts  = config.fetch("servers", {}).values.flat_map { |role| role.is_a?(Hash) ? role["hosts"] : role }
+              hosts += config.fetch("accessories", {}).values.map { |accessory| accessory["host"] }
+              puts hosts.flatten.compact.uniq
+            ' | xargs ssh-keyscan -T 10 >> ~/.ssh/known_hosts
+          fi
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Show what is about to ship
+        run: |
+          echo "Branch:   ${{ inputs.branch }}"
+          echo "Revision: $(git rev-parse HEAD)"
+          git log -1 --pretty='  %h %s (%an)'
+
+      # The pre-deploy hook (.kamal/hooks/pre-deploy) runs bin/preflight
+      # --remote from here, so the secret, TLS and server checks gate this
+      # deploy exactly as they gate a local one.
+      - name: bin/kamal deploy
+        run: bin/kamal deploy
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Deploy \`${{ inputs.branch }}\` -- ${{ job.status }}"
+            echo
+            echo "- Revision: \`$(git rev-parse --short HEAD)\`"
+            echo "- Subject: $(git log -1 --pretty=%s)"
+            echo "- Host: <https://inventory.happy-parents.ua>"
+          } >> "$GITHUB_STEP_SUMMARY"

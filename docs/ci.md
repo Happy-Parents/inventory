@@ -59,3 +59,39 @@ and `PUT` to `/repos/Happy-Parents/inventory/rulesets/<id>` with the same file.
 Note that a required check that has never reported once leaves a PR pending
 forever. Merge this workflow to `main` first, let one run finish, then apply the
 ruleset.
+
+## Deploying from the Actions tab
+
+`.github/workflows/deploy.yml` runs `bin/kamal deploy` on a GitHub runner — the
+same command, the same `config/deploy.yml` and the same `.kamal/secrets` as a
+deploy from a laptop, including the `pre-deploy` hook that runs
+`bin/preflight --remote`. It only runs when someone starts it:
+**Actions → Deploy → Run workflow**.
+
+The **branch** input decides what ships. It defaults to `main`; type any branch,
+tag or SHA to deploy that instead. The **Use workflow from** dropdown above it
+is a GitHub control that only picks which copy of `deploy.yml` executes — it
+does *not* change what gets built, so leave it on `main` unless the workflow
+file itself is what you are testing.
+
+Deploys are serialised (`concurrency: deploy-production`) and never cancelled
+mid-rollout.
+
+### Secrets it needs
+
+Two of the deploy's inputs are gitignored and so cannot come from the checkout.
+Add them under Settings → Secrets and variables → Actions:
+
+| Secret | Value |
+| ------ | ----- |
+| `RAILS_PRODUCTION_KEY` | Contents of `config/credentials/production.key`. Unlocks the registry PAT, the database password and the origin TLS key. |
+| `KAMAL_SSH_PRIVATE_KEY` | Private half of `~/.ssh/koi_vps_deployer`, whole PEM including the header and footer lines. Written back to that same path, because `ssh.keys` in `config/deploy.yml` names it explicitly. |
+| `KAMAL_SSH_KNOWN_HOSTS` | *Optional but recommended.* Output of `ssh-keyscan 193.169.188.144`. Without it the workflow keyscans at deploy time and trusts whatever answers. |
+
+Nothing else is needed: Kamal logs in to GHCR with the PAT it reads out of the
+encrypted production credentials, so `GITHUB_TOKEN` is not involved and the job
+only asks for `contents: read`.
+
+The workflow targets a `production` environment, which GitHub creates on the
+first run. Add required reviewers or a branch restriction there (Settings →
+Environments → production) if deploys should need an approval.
