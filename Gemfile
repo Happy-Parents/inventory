@@ -26,6 +26,10 @@ gem 'turbo-rails', '>= 2.0.23'
 # Server Provisioning
 gem 'image_processing', '~> 2.1'
 gem 'kamal', '>= 2.12', require: false
+# image_processing 2.0 made its backends soft dependencies, so the one Active
+# Storage's variant processor uses (:vips, the Rails 7.0+ default) has to be
+# declared here or booting raises LoadError.
+gem 'ruby-vips', '~> 2.0'
 gem 'thruster', '>= 0.1.26', require: false
 
 group :development, :test do
