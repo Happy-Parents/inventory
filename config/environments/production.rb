@@ -1,4 +1,4 @@
-require "active_support/core_ext/integer/time"
+require 'active_support/core_ext/integer/time'
 
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
@@ -16,11 +16,11 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
 
   # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  config.public_file_server.headers = { 'cache-control' => "public, max-age=#{1.year.to_i}" }
 
   # Keep the site out of search engines.
   config.action_dispatch.default_headers = config.action_dispatch.default_headers.merge(
-    "X-Robots-Tag" => "noindex, nofollow, noarchive, nosnippet"
+    'X-Robots-Tag' => 'noindex, nofollow, noarchive, nosnippet'
   )
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
@@ -40,17 +40,17 @@ Rails.application.configure do
   # Skip http-to-https redirect for the default health check endpoint.
   # kamal-proxy probes /up over plain HTTP from inside the docker network; a
   # 301 there would fail the health check and abort every deploy.
-  config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  config.ssl_options = { redirect: { exclude: ->(request) { request.path == '/up' } } }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
   config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
 
   # Change to "debug" to log everything (including potentially personally-identifiable information!).
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  config.log_level = ENV.fetch('RAILS_LOG_LEVEL', 'info')
 
   # Prevent health checks from clogging up the logs.
-  config.silence_healthcheck_path = "/up"
+  config.silence_healthcheck_path = '/up'
 
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
@@ -68,7 +68,7 @@ Rails.application.configure do
 
   # Set host to be used by links generated in mailer templates. Devise password
   # reset and unlock links are generated from this.
-  config.action_mailer.default_url_options = { host: "inventory.happy-parents.ua", protocol: "https" }
+  config.action_mailer.default_url_options = { host: 'inventory.happy-parents.ua', protocol: 'https' }
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
   # config.action_mailer.smtp_settings = {
@@ -90,8 +90,8 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  config.hosts << "inventory.happy-parents.ua"
-  
+  config.hosts << 'inventory.happy-parents.ua'
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == '/up' } }
 end

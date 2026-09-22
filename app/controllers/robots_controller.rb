@@ -1,7 +1,7 @@
 class RobotsController < ActionController::Base
   def show
     render plain: Rails.env.production? ? DISALLOW_ALL : ALLOW_ALL,
-           content_type: "text/plain"
+           content_type: 'text/plain'
   end
 
   DISALLOW_ALL = <<~TXT

@@ -1,5 +1,5 @@
 ActiveAdmin.register Warehouse do
-  menu parent: I18n.t("active_admin.menu.inventory"),
+  menu parent: I18n.t('active_admin.menu.inventory'),
        priority: 4
   permit_params :name
 

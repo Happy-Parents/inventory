@@ -1,3 +1,10 @@
+# Mirrors the Overcommit pre-push hooks (.overcommit.yml + .git-hooks/pre_push)
+# so a pull request cannot pass CI on work that would have been rejected
+# locally: RuboCop, bundler-audit and the RSpec suite. Brakeman and the
+# importmap audit run here as well -- they are too slow to sit on a push.
+#
+# Job names are the identifiers GitHub uses for required status checks, so
+# renaming a job means updating the branch ruleset (see docs/ci.md).
 name: CI
 
 on:
@@ -5,8 +12,14 @@ on:
   push:
     branches: [ main ]
 
+# A new push to a PR makes the in-flight run obsolete; don't pay for it.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   scan_ruby:
+    name: Security (Ruby)
     runs-on: ubuntu-latest
 
     steps:
@@ -20,11 +33,12 @@ jobs:
 
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
-      
+
       - name: Scan for known security vulnerabilities in gems used
         run: bin/bundler-audit
-      
+
   scan_js:
+    name: Security (JavaScript)
     runs-on: ubuntu-latest
 
     steps:
@@ -40,6 +54,7 @@ jobs:
         run: bin/importmap audit
 
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
@@ -66,6 +81,7 @@ jobs:
         run: bin/rubocop -f github
 
   test:
+    name: Test (RSpec)
     runs-on: ubuntu-latest
 
     services:
@@ -101,50 +117,6 @@ jobs:
           DB_USERNAME: hp_inventory
           DB_PASSWORD: postgres
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-        run: bin/rails db:test:prepare test
-
-  system-test:
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: hp_inventory
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U hp_inventory"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips postgresql-client
-
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-
-      - name: Run System Tests
-        env:
-          RAILS_ENV: test
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USERNAME: hp_inventory
-          DB_PASSWORD: postgres
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-        run: bin/rails db:test:prepare test:system
-
-      - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: screenshots
-          path: ${{ github.workspace }}/tmp/screenshots
-          if-no-files-found: ignore
+        run: |
+          bin/rails db:test:prepare
+          bundle exec rspec

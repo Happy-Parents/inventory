@@ -1,0 +1,30 @@
+# For a complete list of hooks, see:
+# https://github.com/sds/overcommit/tree/master/lib/overcommit/hook
+#
+# For a complete list of options that you can use to customize hooks, see:
+# https://github.com/sds/overcommit#configuration
+
+PreCommit:
+  TrailingWhitespace:
+    enabled: true
+    exclude:
+      - '**/db/structure.sql' # Ignore trailing whitespace in generated files
+
+# RuboCop and BundlerAudit are repo plugin hooks defined in .git-hooks/pre_push,
+# since Overcommit ships no built-in pre-push versions of them.
+PrePush:
+  RuboCop:
+    enabled: true
+    description: 'Analyze with RuboCop'
+    required_executable: 'bin/rubocop'
+
+  BundlerAudit:
+    enabled: true
+    description: 'Check the bundle for vulnerable gems'
+    required_executable: 'bin/bundler-audit'
+
+  RSpec:
+    enabled: true
+    description: 'Run RSpec test suite'
+    required_executable: 'bundle'
+    command: ['bundle', 'exec', 'rspec']

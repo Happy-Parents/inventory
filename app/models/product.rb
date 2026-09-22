@@ -1,3 +1,34 @@
+# == Schema Information
+#
+# Table name: products
+#
+#  id                  :uuid             not null, primary key
+#  hp_url              :string
+#  language            :string           default("unknown"), not null
+#  manufacturer_name   :string           not null
+#  manufacturer_sku    :string
+#  name                :string
+#  notes               :text
+#  packaging_condition :string           default("ok"), not null
+#  site_status         :string           default("needs_review"), not null
+#  sku                 :string
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  brand_id            :uuid
+#  category_id         :uuid
+#
+# Indexes
+#
+#  index_products_on_brand_id          (brand_id)
+#  index_products_on_category_id       (category_id)
+#  index_products_on_manufacturer_sku  (manufacturer_sku)
+#  index_products_on_sku               (sku)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (brand_id => brands.id)
+#  fk_rails_...  (category_id => categories.id)
+#
 class Product < ApplicationRecord
   include Ransackable
   include TranslatableEnum
@@ -10,19 +41,19 @@ class Product < ApplicationRecord
   accepts_nested_attributes_for :stock_items, allow_destroy: true
 
   enum :language, {
-    ukrainian: "ukrainian",
-    russian: "russian",
-    english: "english",
-    unknown: "unknown",
-    not_applicable: "not applicable"
+    ukrainian: 'ukrainian',
+    russian: 'russian',
+    english: 'english',
+    unknown: 'unknown',
+    not_applicable: 'not applicable'
   },
   default: :unknown
 
   enum :site_status, {
-    published: "published", not_published: "not_published", needs_review: "needs_review"
+    published: 'published', not_published: 'not_published', needs_review: 'needs_review'
   }, default: :needs_review
 
-  enum :packaging_condition, { ok: "ok", damaged: "damaged" }, default: :ok
+  enum :packaging_condition, { ok: 'ok', damaged: 'damaged' }, default: :ok
 
   validates :manufacturer_name, presence: true
   validates :hp_url, presence: true, if: :published?

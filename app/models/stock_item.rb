@@ -1,3 +1,26 @@
+# == Schema Information
+#
+# Table name: stock_items
+#
+#  id               :uuid             not null, primary key
+#  damaged_quantity :integer          default(0), not null
+#  quantity         :integer          default(0), not null
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  product_id       :uuid             not null
+#  warehouse_id     :uuid             not null
+#
+# Indexes
+#
+#  index_stock_items_on_product_id                   (product_id)
+#  index_stock_items_on_product_id_and_warehouse_id  (product_id,warehouse_id) UNIQUE
+#  index_stock_items_on_warehouse_id                 (warehouse_id)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (product_id => products.id)
+#  fk_rails_...  (warehouse_id => warehouses.id)
+#
 class StockItem < ApplicationRecord
   include Ransackable
 

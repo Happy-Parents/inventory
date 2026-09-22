@@ -1,66 +1,58 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-gem "rails", "~> 8.1.3", ">= 8.1.3.1"
-# The modern asset pipeline for Rails [https://github.com/rails/propshaft]
-gem "propshaft"
-# Use PostgreSQL as the database for Active Record
-gem "pg", ">= 1.6.3"
-# Use the Puma web server [https://github.com/puma/puma]
-gem "puma", ">= 5.0"
-# Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
-gem "importmap-rails"
-# Hotwire's SPA-like page accelerator [https://turbo.hotwired.dev]
-gem "turbo-rails"
-# Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
-gem "stimulus-rails"
-gem "csv"
-gem "rails-i18n"
-gem "bcrypt", "~> 3.1.7"
-gem "activeadmin", "4.0.0.beta22"
-gem "devise", ">= 5.0.4"
-gem "tailwindcss-ruby", "~> 4.0"
+# Core
+gem 'bootsnap', require: false
+gem 'pg', '>= 1.6.3'
+gem 'puma', '>= 5.0'
+gem 'rails', '~> 8.1.3', '>= 8.1.3.1'
+
+# Application
+gem 'activeadmin', '4.0.0.beta22'
+gem 'bcrypt', '~> 3.1.7'
+gem 'csv'
+gem 'devise', '>= 5.0.4'
 gem 'pundit', '>= 2.5.2'
+gem 'rails-i18n'
 
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+# Assets
+gem 'importmap-rails', '>= 2.2.3'
+gem 'propshaft', '>= 1.3.2'
+gem 'solid_cache', '>= 1.0.10'
+gem 'solid_queue', '>= 1.7'
+gem 'stimulus-rails', '>= 1.3.4'
+gem 'tailwindcss-ruby', '~> 4.0'
+gem 'turbo-rails', '>= 2.0.23'
 
-# Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
-gem "solid_cache"
-gem "solid_queue"
-gem "solid_cable"
-
-# Reduces boot times through caching; required in config/boot.rb
-gem "bootsnap", require: false
-
-# Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-gem "kamal", require: false
-
-# Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
-gem "thruster", require: false
-
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+# Server Provisioning
+gem 'image_processing', '~> 1.2'
+gem 'kamal', '>= 2.12', require: false
+gem 'thruster', '>= 0.1.26', require: false
 
 group :development, :test do
-  # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-
-  # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
-  gem "bundler-audit", require: false
-
-  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
-  gem "brakeman", require: false
-
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
-end
-
-group :development do
-  # Use console on exceptions pages [https://github.com/rails/web-console]
-  gem "web-console"
+  gem 'awesome_print', '>= 1.9.2'
+  gem 'brakeman', require: false
+  gem 'bullet', '>= 8.2'
+  gem 'bundler-audit', require: false
+  gem 'factory_bot_rails', '>= 6.5.1'
+  gem 'ffaker', '>= 2.25'
 end
 
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
-  gem "capybara"
-  gem "selenium-webdriver"
+  gem 'pundit-matchers', '>= 4.0'
+  gem 'rspec-rails', '>= 8.0.4'
+  gem 'shoulda-matchers', '>= 8.0.1'
+end
+group :development do
+  gem 'i18n-tasks', '>= 1.1.2'
+  gem 'annotaterb', '>= 4.24'
+  gem 'overcommit', '>= 0.73.0'
+  gem 'rubocop-factory_bot', '>= 2.28'
+  gem 'rubocop-faker', '>= 1.3'
+  gem 'rubocop-i18n', '>= 3.3'
+  gem 'rubocop-performance', '>= 1.27'
+  gem 'rubocop-rails', '>= 2.37'
+  gem 'rubocop-rails-omakase', '>= 1.1'
+  gem 'rubocop-rspec_rails', '>= 2.32'
+  gem 'rubocop-thread_safety', '>= 0.8.0'
+  gem 'tzinfo-data', platforms: %i[windows jruby]
 end

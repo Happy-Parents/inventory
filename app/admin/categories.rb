@@ -1,5 +1,5 @@
 ActiveAdmin.register Category do
-  menu parent: I18n.t("active_admin.menu.inventory"),
+  menu parent: I18n.t('active_admin.menu.inventory'),
        priority: 2
   permit_params :name, :parent_id
 
