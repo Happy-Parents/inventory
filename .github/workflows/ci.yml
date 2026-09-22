@@ -42,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
+
       - name: Checkout code
         uses: actions/checkout@v7
 
@@ -108,13 +111,6 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-
-      # No RAILS_MASTER_KEY here on purpose. The suite needs no decrypted
-      # credential -- the database ones arrive as DB_* below, and in the test
-      # environment Rails falls back to a throwaway generated secret_key_base
-      # when no key is present. Handing it a key that does not open
-      # config/credentials.yml.enc (or that a fork's pull request cannot see
-      # at all) is the only way this step can fail on credentials.
       - name: Run tests
         env:
           RAILS_ENV: test
