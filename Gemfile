@@ -7,7 +7,7 @@ gem 'puma', '>= 5.0'
 gem 'rails', '~> 8.1.3', '>= 8.1.3.1'
 
 # Application
-gem 'activeadmin', '4.0.0.beta22'
+gem 'activeadmin', '4.0.0.beta23'
 gem 'bcrypt', '~> 3.1.7'
 gem 'csv'
 gem 'devise', '>= 5.0.4'
