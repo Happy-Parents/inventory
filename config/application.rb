@@ -14,7 +14,10 @@ module Inventory
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    # configurable_columns is required explicitly from its initializer: it is
+    # mixed into ActiveAdmin classes that are never reloaded, so it must not be
+    # reloadable itself.
+    config.autoload_lib(ignore: %w[assets tasks configurable_columns configurable_columns.rb])
 
     # Configuration for the application, engines, and railties goes here.
     #

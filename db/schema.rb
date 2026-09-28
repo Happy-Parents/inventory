@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_09_120004) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,6 +26,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_120004) do
     t.index ["author_type", "author_id"], name: "index_active_admin_comments_on_author"
     t.index ["namespace"], name: "index_active_admin_comments_on_namespace"
     t.index ["resource_type", "resource_id"], name: "index_active_admin_comments_on_resource"
+  end
+
+  create_table "admin_table_preferences", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "admin_id", null: false
+    t.datetime "created_at", null: false
+    t.string "resource_key", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "visible_columns", default: [], null: false
+    t.index ["admin_id", "resource_key"], name: "index_admin_table_preferences_on_admin_id_and_resource_key", unique: true
+    t.index ["admin_id"], name: "index_admin_table_preferences_on_admin_id"
   end
 
   create_table "admins", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -96,6 +106,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_120004) do
     t.index ["name"], name: "index_warehouses_on_name", unique: true
   end
 
+  add_foreign_key "admin_table_preferences", "admins"
   add_foreign_key "categories", "categories", column: "parent_id"
   add_foreign_key "products", "brands"
   add_foreign_key "products", "categories"
