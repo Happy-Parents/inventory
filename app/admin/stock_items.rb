@@ -3,14 +3,17 @@ ActiveAdmin.register StockItem do
        priority: 5
   permit_params :product_id, :warehouse_id, :quantity, :damaged_quantity
 
-  index do
-    selectable_column
 
+  configurable_columns do
     column(:product) { |stock_item| product_name_and_sku(stock_item.product) }
     column :warehouse
     column :quantity
     column :damaged_quantity
+  end
 
+  index do
+    selectable_column
+    configurable_columns
     actions
   end
 

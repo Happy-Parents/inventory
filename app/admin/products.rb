@@ -8,9 +8,9 @@ ActiveAdmin.register Product do
                 :packaging_condition, :hp_url, :notes,
                 stock_items_attributes: [ :id, :warehouse_id, :quantity, :damaged_quantity, :_destroy ]
 
-  index do
-    selectable_column
-
+  # Every column here can be shown or hidden per admin from the "Columns"
+  # sidebar; `default: true` is what a new admin sees.
+  configurable_columns do
     column :brand
     column :manufacturer_sku
     column :manufacturer_name
@@ -24,6 +24,11 @@ ActiveAdmin.register Product do
     column(:language) { |product| product.language_label }
     column :notes
     column(:warehouse) { |product| product.warehouses.pluck(:name) }
+  end
+
+  index do
+    selectable_column
+    configurable_columns
     actions
   end
 
