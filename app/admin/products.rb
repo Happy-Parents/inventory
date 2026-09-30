@@ -8,24 +8,6 @@ ActiveAdmin.register Product do
                 :packaging_condition, :hp_url, :notes,
                 stock_items_attributes: [ :id, :warehouse_id, :quantity, :damaged_quantity, :_destroy ]
 
-  # Every column here can be shown or hidden per admin from the "Columns"
-  # sidebar; `default: true` is what a new admin sees.
-  configurable_columns do
-    column :brand
-    column :manufacturer_sku
-    column :manufacturer_name
-    column :sku
-    column :name
-    column(:qty) { |product| product.total_quantity }
-    column :category
-    column(:packaging_condition) { |product| product.packaging_condition_label }
-    column(:site_status) { |product| product.site_status_label }
-    column :hp_url
-    column(:language) { |product| product.language_label }
-    column :notes
-    column(:warehouse) { |product| product.warehouses.pluck(:name) }
-  end
-
   index do
     selectable_column
     configurable_columns
@@ -100,5 +82,21 @@ ActiveAdmin.register Product do
     end
 
     active_admin_comments_for(resource)
+  end
+
+  configurable_columns do
+    column :brand
+    column :manufacturer_sku
+    column :manufacturer_name
+    column :sku
+    column :name
+    column(:qty) { |product| product.total_quantity }
+    column :category
+    column(:packaging_condition) { |product| product.packaging_condition_label }
+    column(:site_status) { |product| product.site_status_label }
+    column :hp_url
+    column(:language) { |product| product.language_label }
+    column :notes
+    column(:warehouse) { |product| product.warehouses.pluck(:name) }
   end
 end
