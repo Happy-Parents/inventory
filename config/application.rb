@@ -11,7 +11,7 @@ module Inventory
     # reloadable itself.
     config.autoload_lib(ignore: %w[assets tasks configurable_columns configurable_columns.rb])
 
-    config.time_zone = 'Kyiv'
+    config.time_zone = 'Europe/Kyiv'
     config.i18n.available_locales = [ :uk, :en ]
     config.i18n.default_locale = :uk
     config.i18n.fallbacks = [ :en ]
