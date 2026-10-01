@@ -35,7 +35,7 @@ gem 'thruster', '>= 0.1.26', require: false
 
 group :development, :test do
   gem 'awesome_print', '>= 1.9.2'
-  gem 'brakeman', require: false
+  gem 'brakeman', '~> 8.1.0', require: false
   gem 'bullet', '>= 8.2'
   gem 'bundler-audit', require: false
   gem 'factory_bot_rails', '>= 6.5.1'
