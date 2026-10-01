@@ -8,6 +8,7 @@ gem 'rails', '~> 8.1.3', '>= 8.1.3.1'
 
 # Application
 gem 'activeadmin', '4.0.0.beta22'
+gem 'activeadmin_configurable_columns', '~> 1.0'
 gem 'bcrypt', '~> 3.1.7'
 gem 'csv'
 gem 'devise', '>= 5.0.4'
@@ -34,7 +35,7 @@ gem 'thruster', '>= 0.1.26', require: false
 
 group :development, :test do
   gem 'awesome_print', '>= 1.9.2'
-  gem 'brakeman', require: false
+  gem 'brakeman', '~> 8.1.0', require: false
   gem 'bullet', '>= 8.2'
   gem 'bundler-audit', require: false
   gem 'factory_bot_rails', '>= 6.5.1'

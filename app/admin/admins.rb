@@ -3,7 +3,7 @@ ActiveAdmin.register Admin do
        priority: 1
   permit_params :email, :role, :password, :password_confirmation
 
-  index do
+  index download_links: false do
     selectable_column
 
     column :email

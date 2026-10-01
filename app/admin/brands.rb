@@ -3,7 +3,7 @@ ActiveAdmin.register Brand do
        priority: 3
   permit_params :name
 
-  index do
+  index download_links: false do
     selectable_column
 
     column :name

@@ -3,7 +3,7 @@ ActiveAdmin.register Category do
        priority: 2
   permit_params :name, :parent_id
 
-  index do
+  index download_links: false do
     selectable_column
 
     column :name

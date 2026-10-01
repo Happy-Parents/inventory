@@ -7,3 +7,11 @@ uk:
     menu:
       inventory: "Склад"
       settings: "Налаштунки"
+    sidebars:
+      columns: "Колонки"
+    table_columns:
+      title: "Колонки таблиць"
+      save: "Зберегти колонки"
+      saved: "Колонки збережено"
+      empty: "Жодна таблиця поки не має налаштовуваних колонок."
+      unknown_resource: "Невідома таблиця"
