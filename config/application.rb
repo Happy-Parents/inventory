@@ -6,10 +6,7 @@ module Inventory
   class Application < Rails::Application
     config.load_defaults 8.1
 
-    # configurable_columns is required explicitly from its initializer: it is
-    # mixed into ActiveAdmin classes that are never reloaded, so it must not be
-    # reloadable itself.
-    config.autoload_lib(ignore: %w[assets tasks configurable_columns configurable_columns.rb])
+    config.autoload_lib(ignore: %w[assets tasks])
 
     config.time_zone = 'Europe/Kyiv'
     config.i18n.available_locales = [ :uk, :en ]

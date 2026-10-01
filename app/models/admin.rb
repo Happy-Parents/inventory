@@ -24,7 +24,8 @@ class Admin < ApplicationRecord
   devise :database_authenticatable,
          :recoverable, :rememberable, :validatable
 
-  has_many :table_preferences, class_name: 'AdminTablePreference', dependent: :destroy
+  has_many :table_preferences, class_name: 'ActiveadminConfigurableColumns::Preference',
+                               as: :admin, dependent: :destroy
 
   def self.unransackable_attributes
     %w[encrypted_password reset_password_token]

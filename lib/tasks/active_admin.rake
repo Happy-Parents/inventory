@@ -6,6 +6,10 @@ namespace :active_admin do
     write_entrypoint = lambda do
       aa = Gem.loaded_specs['activeadmin']&.full_gem_path ||
            abort('active_admin:tailwind — activeadmin gem not found')
+      # The configurable-columns picker ships its views inside the gem, so
+      # Tailwind has to scan them too or their classes get purged.
+      acc = Gem.loaded_specs['activeadmin_configurable_columns']&.full_gem_path ||
+            abort('active_admin:tailwind — activeadmin_configurable_columns gem not found')
 
       contents = <<~CSS
         @import "tailwindcss";
@@ -15,6 +19,7 @@ namespace :active_admin do
         @source "#{aa}/vendor/javascript/flowbite.js";
         @source "#{aa}/plugin.js";
         @source "#{aa}/app/views/**/*.{arb,erb,html,rb}";
+        @source "#{acc}/app/views/**/*.{arb,erb,html,rb}";
         @source "../../admin/**/*.{arb,erb,html,rb}";
         @source "../../views/active_admin/**/*.{arb,erb,html,rb}";
         @source "../../views/admin/**/*.{arb,erb,html,rb}";

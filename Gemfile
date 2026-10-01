@@ -8,6 +8,7 @@ gem 'rails', '~> 8.1.3', '>= 8.1.3.1'
 
 # Application
 gem 'activeadmin', '4.0.0.beta22'
+gem 'activeadmin_configurable_columns', '~> 1.0'
 gem 'bcrypt', '~> 3.1.7'
 gem 'csv'
 gem 'devise', '>= 5.0.4'
