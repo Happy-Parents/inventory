@@ -51,6 +51,13 @@ jobs:
         with:
           bundler-cache: true
 
+      # .kamal/secrets boots the Rails app on this runner to decrypt the
+      # production credentials, and Bundler.require needs libvips for the
+      # ruby-vips gem. Without it every secret resolves to an empty string
+      # and the deploy dies later at docker login.
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
+
       # Everything in .kamal/secrets ultimately unlocks with this one file:
       # the registry PAT, the database password and the origin TLS key all
       # live in config/credentials/production.yml.enc.
