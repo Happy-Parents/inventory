@@ -8,11 +8,11 @@ ActiveAdmin.register Product do
                 :packaging_condition, :hp_url, :notes,
                 stock_items_attributes: [ :id, :warehouse_id, :quantity, :damaged_quantity, :_destroy ]
 
-  index do
-    selectable_column
-    configurable_columns
-    actions
-  end
+  index download_links: [ :csv ] do
+  selectable_column
+  configurable_columns
+  actions
+end
 
   filter :brand
   filter :manufacturer_sku

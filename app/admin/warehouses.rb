@@ -3,7 +3,7 @@ ActiveAdmin.register Warehouse do
        priority: 4
   permit_params :name
 
-  index do
+  index download_links: false do
     selectable_column
 
     column :name

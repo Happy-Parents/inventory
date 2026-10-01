@@ -1,9 +1,11 @@
 ActiveAdmin.register StockItem do
+  config.per_page = [ 10, 25, 50, 100, 500 ]
+
   menu parent: I18n.t('active_admin.menu.inventory'),
        priority: 5
   permit_params :product_id, :warehouse_id, :quantity, :damaged_quantity
 
-  index do
+  index download_links: [ :csv ] do
     selectable_column
     configurable_columns
     actions
