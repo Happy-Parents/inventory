@@ -14,6 +14,8 @@ gem 'csv'
 gem 'devise', '>= 5.0.4'
 gem 'pundit', '>= 2.5.2'
 gem 'rails-i18n'
+gem 'omniauth-google-oauth2', '>= 1.2.3'
+gem 'omniauth-rails_csrf_protection', '>= 2.0.1'
 
 # Assets
 gem 'importmap-rails', '>= 2.2.3'

@@ -20,9 +20,8 @@
 class Admin < ApplicationRecord
   include Ransackable
   include TranslatableEnum
-
-  devise :database_authenticatable,
-         :recoverable, :rememberable, :validatable
+devise :database_authenticatable, :rememberable, :validatable,
+       :omniauthable, omniauth_providers: [ :google_oauth2 ]
 
   has_many :table_preferences, class_name: 'ActiveadminConfigurableColumns::Preference',
                                as: :admin, dependent: :destroy
@@ -33,4 +32,10 @@ class Admin < ApplicationRecord
 
   enum :role, { manager: 'manager', super_admin: 'super admin' }, default: :manager
   def role_condition_label = self.class.human_enum(:role, role)
+
+  protected
+
+  def password_required?
+    password.present? || password_confirmation.present?
+  end
 end

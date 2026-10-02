@@ -18,7 +18,7 @@ ActiveAdmin.register Admin do
     f.inputs do
       f.input :email
       f.input :role, as: :select, collection: Admin.enum_options(:role)
-      f.input :password
+      f.input :password, hint: I18n.t('active_admin.admins.password_hint')
       f.input :password_confirmation
     end
     f.actions

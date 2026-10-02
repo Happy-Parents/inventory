@@ -1,0 +1,15 @@
+---
+uk:
+  active_admin:
+    admins:
+      password_hint: Необов'язково — залиште порожнім для входу лише через Google.
+        При редагуванні порожнє поле залишить поточний пароль.
+    devise:
+      login:
+        or: або
+        remember_me: Запам'ятати мене
+        sign_in_with_google: Увійти через Google
+        submit: Увійти
+        title: Вхід
+      password:
+        title: Пароль

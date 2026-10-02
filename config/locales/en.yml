@@ -1,3 +1,15 @@
 ---
 en:
-  hello: Hello world
+  active_admin:
+    admins:
+      password_hint: Optional — leave blank for Google-only sign-in. When editing,
+        blank keeps the current password.
+    devise:
+      login:
+        or: or
+        remember_me: Remember me
+        sign_in_with_google: Sign in with Google
+        submit: Sign in
+        title: Sign in
+      password:
+        title: Password

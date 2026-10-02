@@ -1,0 +1,18 @@
+---
+en:
+  active_admin:
+    delete: "❌"
+    edit: "✏️"
+    menu:
+      inventory: Inventory
+      settings: Settings
+    sidebars:
+      columns: Columns
+    stock: Stock
+    table_columns:
+      empty: No table has configurable columns yet.
+      save: Save columns
+      saved: Columns saved
+      title: Table columns
+      unknown_resource: Unknown table
+    view: "👁️"
