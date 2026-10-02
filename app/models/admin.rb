@@ -21,7 +21,7 @@ class Admin < ApplicationRecord
   include Ransackable
   include TranslatableEnum
 devise :database_authenticatable, :rememberable, :validatable,
-       :omniauthable, omniauth_providers: [ :google_oauth2 ]
+       :omniauthable, omniauth_providers: [ :google_oauth2, :github ]
 
   has_many :table_preferences, class_name: 'ActiveadminConfigurableColumns::Preference',
                                as: :admin, dependent: :destroy

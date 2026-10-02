@@ -9,6 +9,7 @@ en:
         or: or
         remember_me: Remember me
         sign_in_with_google: Sign in with Google
+        sign_in_with_github: Sign in with GitHub
         submit: Sign in
         title: Sign in
       password:

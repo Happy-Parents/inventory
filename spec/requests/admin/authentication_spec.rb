@@ -7,6 +7,7 @@ RSpec.describe 'Admin authentication' do
   after do
     OmniAuth.config.test_mode = false
     OmniAuth.config.mock_auth[:google_oauth2] = nil
+    OmniAuth.config.mock_auth[:github] = nil
     Rails.application.env_config.delete('omniauth.auth')
   end
 
@@ -16,13 +17,13 @@ RSpec.describe 'Admin authentication' do
     session['warden.user.admin.key']&.dig(0, 0)
   end
 
-  def mock_google_auth(email)
-    OmniAuth.config.mock_auth[:google_oauth2] = OmniAuth::AuthHash.new(
-      provider: 'google_oauth2',
+  def mock_oauth(provider, email)
+    OmniAuth.config.mock_auth[provider] = OmniAuth::AuthHash.new(
+      provider: provider.to_s,
       uid: '123456789012345678901',
       info: { email: email, name: 'Test Admin' }
     )
-    Rails.application.env_config['omniauth.auth'] = OmniAuth.config.mock_auth[:google_oauth2]
+    Rails.application.env_config['omniauth.auth'] = OmniAuth.config.mock_auth[provider]
   end
 
   describe 'password sign-in' do
@@ -56,7 +57,7 @@ RSpec.describe 'Admin authentication' do
 
   describe 'Google sign-in' do
     it 'signs a whitelisted email into the same account as password login' do
-      mock_google_auth(admin.email)
+      mock_oauth(:google_oauth2, admin.email)
 
       get '/admin/auth/google_oauth2/callback'
 
@@ -66,7 +67,7 @@ RSpec.describe 'Admin authentication' do
 
     it 'signs in an SSO-only admin' do
       sso_only = create(:admin, email: 'sso.only@example.com', password: nil)
-      mock_google_auth(sso_only.email)
+      mock_oauth(:google_oauth2, sso_only.email)
 
       get '/admin/auth/google_oauth2/callback'
 
@@ -75,7 +76,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'matches the Google email case-insensitively' do
-      mock_google_auth(admin.email.upcase)
+      mock_oauth(:google_oauth2, admin.email.upcase)
 
       get '/admin/auth/google_oauth2/callback'
 
@@ -83,12 +84,62 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'rejects an email that has no Admin row and does not create one' do
-      mock_google_auth('stranger@gmail.com')
+      mock_oauth(:google_oauth2, 'stranger@gmail.com')
 
       expect { get '/admin/auth/google_oauth2/callback' }.not_to change(Admin, :count)
 
       expect(response).to redirect_to('/admin/login')
       expect(flash[:alert]).to include('stranger@gmail.com')
+      expect(warden_admin_id).to be_nil
+    end
+  end
+
+  describe 'GitHub sign-in' do
+    it 'signs a whitelisted email into the same account as password login' do
+      mock_oauth(:github, admin.email)
+
+      get '/admin/auth/github/callback'
+
+      expect(response).to redirect_to('/admin')
+      expect(warden_admin_id).to eq(admin.id)
+    end
+
+    it 'signs in an SSO-only admin' do
+      sso_only = create(:admin, email: 'sso.only@example.com', password: nil)
+      mock_oauth(:github, sso_only.email)
+
+      get '/admin/auth/github/callback'
+
+      expect(response).to redirect_to('/admin')
+      expect(warden_admin_id).to eq(sso_only.id)
+    end
+
+    it 'matches the GitHub email case-insensitively' do
+      mock_oauth(:github, admin.email.upcase)
+
+      get '/admin/auth/github/callback'
+
+      expect(warden_admin_id).to eq(admin.id)
+    end
+
+    it 'rejects an email that has no Admin row and does not create one' do
+      mock_oauth(:github, 'stranger@github.com')
+
+      expect { get '/admin/auth/github/callback' }.not_to change(Admin, :count)
+
+      expect(response).to redirect_to('/admin/login')
+      expect(flash[:alert]).to include('stranger@github.com')
+      expect(warden_admin_id).to be_nil
+    end
+
+    # GitHub returns no email when the user:email scope is missing or the
+    # account has none — that must never match an Admin row.
+    it 'rejects a sign-in when GitHub provides no email' do
+      mock_oauth(:github, nil)
+
+      expect { get '/admin/auth/github/callback' }.not_to change(Admin, :count)
+
+      expect(response).to redirect_to('/admin/login')
       expect(warden_admin_id).to be_nil
     end
   end
