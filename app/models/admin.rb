@@ -9,13 +9,16 @@
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
 #  role                   :string           default("manager"), not null
+#  telegram_username      :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
+#  telegram_id            :bigint
 #
 # Indexes
 #
 #  index_admins_on_email                 (email) UNIQUE
 #  index_admins_on_reset_password_token  (reset_password_token) UNIQUE
+#  index_admins_on_telegram_id           (telegram_id) UNIQUE
 #
 class Admin < ApplicationRecord
   include Ransackable

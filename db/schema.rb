@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_30_132322) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_02_190818) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -46,9 +46,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_30_132322) do
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
     t.string "role", default: "manager", null: false
+    t.bigint "telegram_id"
+    t.string "telegram_username"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_admins_on_email", unique: true
     t.index ["reset_password_token"], name: "index_admins_on_reset_password_token", unique: true
+    t.index ["telegram_id"], name: "index_admins_on_telegram_id", unique: true
   end
 
   create_table "brands", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
