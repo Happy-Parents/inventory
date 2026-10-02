@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gem 'bootsnap', require: false
 gem 'pg', '>= 1.6.3'
 gem 'puma', '>= 5.0'
-gem 'rails', '~> 8.1.3', '>= 8.1.3.1'
+gem 'rails', '~> 8.1.4'
 
 # Application
 gem 'activeadmin', '4.0.0.beta22'
