@@ -8,6 +8,7 @@ RSpec.describe 'Admin authentication' do
     OmniAuth.config.test_mode = false
     OmniAuth.config.mock_auth[:google_oauth2] = nil
     OmniAuth.config.mock_auth[:github] = nil
+    OmniAuth.config.mock_auth[:telegram] = nil
     Rails.application.env_config.delete('omniauth.auth')
   end
 
@@ -24,6 +25,17 @@ RSpec.describe 'Admin authentication' do
       info: { email: email, name: 'Test Admin' }
     )
     Rails.application.env_config['omniauth.auth'] = OmniAuth.config.mock_auth[provider]
+  end
+
+  # Telegram's payload carries no email — only the numeric Telegram user id
+  # (uid) and profile fields. Sign-in matches admins.telegram_id alone.
+  def mock_telegram(uid, username: 'tg_user')
+    OmniAuth.config.mock_auth[:telegram] = OmniAuth::AuthHash.new(
+      provider: 'telegram',
+      uid: uid.to_s,
+      info: { name: 'Test Admin', nickname: username }
+    )
+    Rails.application.env_config['omniauth.auth'] = OmniAuth.config.mock_auth[:telegram]
   end
 
   describe 'password sign-in' do
@@ -141,6 +153,78 @@ RSpec.describe 'Admin authentication' do
 
       expect(response).to redirect_to('/admin/login')
       expect(warden_admin_id).to be_nil
+    end
+  end
+
+  describe 'Telegram sign-in' do
+    it 'signs a linked admin into the same account as password login' do
+      admin.update!(telegram_id: 42, telegram_username: 'old_name')
+      mock_telegram(42, username: 'new_name')
+
+      get '/admin/auth/telegram/callback'
+
+      expect(response).to redirect_to('/admin')
+      expect(warden_admin_id).to eq(admin.id)
+      expect(admin.reload.telegram_username).to eq('new_name')
+    end
+
+    it 'rejects an unlinked Telegram account and does not create an admin' do
+      mock_telegram(999)
+
+      expect { get '/admin/auth/telegram/callback' }.not_to change(Admin, :count)
+
+      expect(response).to redirect_to('/admin/login')
+      expect(flash[:alert]).to include('not linked to any admin')
+      expect(warden_admin_id).to be_nil
+    end
+  end
+
+  describe 'Telegram account linking' do
+    it 'links Telegram to the signed-in admin' do
+      sign_in admin
+      mock_telegram(42, username: 'kyryl')
+
+      get '/admin/auth/telegram/callback'
+
+      expect(response).to redirect_to('/admin')
+      expect(admin.reload.telegram_id).to eq(42)
+      expect(admin.telegram_username).to eq('kyryl')
+    end
+
+    it 'refuses to link a Telegram account already taken by another admin' do
+      create(:admin, email: 'other@example.com', telegram_id: 42)
+      sign_in admin
+      mock_telegram(42)
+
+      get '/admin/auth/telegram/callback'
+
+      expect(admin.reload.telegram_id).to be_nil
+      expect(flash[:alert]).to include('already linked to another admin')
+    end
+
+    it 'renders My Account with the widget when unlinked and the username when linked' do
+      sign_in admin
+
+      get '/admin/my_account'
+      expect(response.body).to include('telegram-widget.js')
+
+      admin.update!(telegram_id: 42, telegram_username: 'kyryl')
+      get '/admin/my_account'
+      expect(response.body).to include('@kyryl')
+    end
+
+    it 'disconnects Telegram from My Account, keeping password login intact' do
+      admin.update!(telegram_id: 42, telegram_username: 'kyryl')
+      sign_in admin
+
+      delete '/admin/my_account/disconnect_telegram'
+
+      expect(admin.reload.telegram_id).to be_nil
+      expect(admin.telegram_username).to be_nil
+
+      sign_out admin
+      post '/admin/login', params: { admin: { email: admin.email, password: password } }
+      expect(warden_admin_id).to eq(admin.id)
     end
   end
 end

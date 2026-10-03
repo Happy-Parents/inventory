@@ -6,7 +6,7 @@ module Inventory
   class Application < Rails::Application
     config.load_defaults 8.1
 
-    config.autoload_lib(ignore: %w[assets tasks])
+    config.autoload_lib(ignore: %w[assets tasks omniauth])
 
     config.time_zone = 'Europe/Kyiv'
     config.i18n.available_locales = [ :uk, :en ]

@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+require Rails.root.join('lib/omniauth/strategies/telegram')
 
 # Assuming you have not yet modified this file, each configuration option below
 # is set to its default value. Note that some are commented out while others
@@ -267,16 +267,16 @@ Devise.setup do |config|
   config.sign_out_via = :delete
 
   # ==> OmniAuth
-  # Add a new OmniAuth provider. Check the wiki for more information on setting
-  # up on your models and hooks.
-  # config.omniauth :github, 'APP_ID', 'APP_SECRET', scope: 'user,public_repo'
   config.omniauth :google_oauth2,
-                  Rails.application.credentials.dig(:google_sso, :client_id),
-                  Rails.application.credentials.dig(:google_sso, :client_secret)
+                  Rails.application.credentials.dig(:oauth, :google, :client_id),
+                  Rails.application.credentials.dig(:oauth, :google, :client_secret)
   config.omniauth :github,
-                  Rails.application.credentials.dig(:github_sso, :client_id),
-                  Rails.application.credentials.dig(:github_sso, :client_secret),
+                  Rails.application.credentials.dig(:oauth, :github, :client_id),
+                  Rails.application.credentials.dig(:oauth, :github, :client_secret),
                   scope: 'user:email'
+config.omniauth :telegram,
+                Rails.application.credentials.dig(:oauth, :telegram, :bot_username),
+                Rails.application.credentials.dig(:oauth, :telegram, :bot_token)
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or
