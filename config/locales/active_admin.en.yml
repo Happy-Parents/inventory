@@ -6,6 +6,15 @@ en:
     menu:
       inventory: Inventory
       settings: Settings
+      my_account: My Account
+    my_account:
+      connected_as: Connected as @%{username}
+      disconnect: Disconnect Telegram
+      disconnect_confirm: Disconnect Telegram?
+      disconnected: Telegram disconnected.
+      not_connected: Not connected. Click the button below and follow the instructions.
+        Look for the confirmation message in the "Telegram" system chat.
+      telegram_panel: Telegram integration
     sidebars:
       columns: Columns
     stock: Stock

@@ -207,10 +207,15 @@ RSpec.describe 'Admin authentication' do
 
       get '/admin/my_account'
       expect(response.body).to include('telegram-widget.js')
+      # Arbre's render both inserts and returns a partial — each icon must
+      # appear exactly once (the fills identify the logo and done-icon SVGs).
+      expect(response.body.scan('#2AABEE').count).to eq(1)
 
       admin.update!(telegram_id: 42, telegram_username: 'kyryl')
       get '/admin/my_account'
       expect(response.body).to include('@kyryl')
+      expect(response.body.scan('#2AABEE').count).to eq(1)
+      expect(response.body.scan('text-green-500').count).to eq(1)
     end
 
     it 'disconnects Telegram from My Account, keeping password login intact' do

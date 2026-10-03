@@ -1,0 +1,24 @@
+<% if current_admin.telegram_id? %>
+  <div class="space-y-4">
+    <div class="flex items-center gap-2">
+      <%= render 'admin/done_icon' %>
+      <span class="font-medium">
+        <%= t('active_admin.my_account.connected_as', username: current_admin.telegram_username) %>
+      </span>
+    </div>
+    <%= button_to t('active_admin.my_account.disconnect'),
+                  admin_my_account_disconnect_telegram_path,
+                  method: :delete,
+                  data: { confirm: t('active_admin.my_account.disconnect_confirm') },
+                  class: 'inline-flex h-9 items-center justify-center rounded-md ' \
+                         'bg-red-600 px-3 text-sm font-medium text-white ' \
+                         'hover:bg-red-700 active:bg-red-800 ' \
+                         'focus:outline-none focus:ring-2 focus:ring-red-500/40 ' \
+                         'dark:bg-red-500 dark:hover:bg-red-400' %>
+  </div>
+<% else %>
+  <p><%= t('active_admin.my_account.not_connected') %></p>
+  <div>
+    <%= render 'admin/telegram_widget' %>
+  </div>
+<% end %>

@@ -1,10 +1,10 @@
 ActiveAdmin.register Admin do
   menu parent: I18n.t('active_admin.menu.settings'),
-       priority: 1
+       priority: 2
   permit_params :email, :role, :password, :password_confirmation
 
   index download_links: false do
-    selectable_column
+      selectable_column
 
     column :email
     column(:role) { |admin| admin.role_condition_label }

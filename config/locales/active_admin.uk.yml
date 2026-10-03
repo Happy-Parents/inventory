@@ -6,6 +6,15 @@ uk:
     menu:
       inventory: Склад
       settings: Налаштунки
+      my_account: Мій Акаунт
+    my_account:
+      connected_as: Підключено як @%{username}
+      disconnect: Відключити Telegram
+      disconnect_confirm: Відключити Telegram?
+      disconnected: Telegram відключено.
+      not_connected: Не підключено. Натисніть кнопку нижче та дотримуйтесь інструкцій.
+        Повідомлення з підтвердженням шукайте в системному чаті «Telegram».
+      telegram_panel: Інтеграція з Telegram
     sidebars:
       columns: Колонки
     stock: Залишки
