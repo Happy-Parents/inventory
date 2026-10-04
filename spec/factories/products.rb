@@ -1,11 +1,11 @@
 FactoryBot.define do
   factory :product do
-    manufacturer_name { FFaker::Product.product_name }
-    name { FFaker::Product.product_name }
+    manufacturer_name { Faker::Commerce.product_name }
+    name { Faker::Commerce.product_name }
     sequence(:sku) { |n| "SKU-#{n}" }
     sequence(:manufacturer_sku) { |n| "MSKU-#{n}" }
-    hp_url { FFaker::Internet.http_url }
-    notes { FFaker::Lorem.sentence }
+    hp_url { Faker::Internet.url }
+    notes { Faker::Lorem.sentence }
     language { :unknown }
     site_status { :needs_review }
     packaging_condition { :ok }

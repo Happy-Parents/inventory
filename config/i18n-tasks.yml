@@ -1,0 +1,31 @@
+# i18n-tasks configuration. See https://github.com/glebm/i18n-tasks#configuration
+base_locale: en
+locales: [en, uk]
+
+data:
+  read:
+    # Without this file i18n-tasks only reads %{locale}.yml and misses
+    # devise.*.yml / active_admin.*.yml, reporting their keys as missing.
+    - config/locales/%{locale}.yml
+    - config/locales/*.%{locale}.yml
+  write:
+    - ['active_admin.*', 'config/locales/active_admin.%{locale}.yml']
+    - ['devise.*', 'config/locales/devise.%{locale}.yml']
+    - config/locales/%{locale}.yml
+
+ignore_missing:
+  # Ukrainian-only model/attribute names; English falls back to Rails'
+  # humanized defaults, so activerecord.en.yml deliberately doesn't exist.
+  - activerecord.*
+
+ignore_unused:
+  # Resolved at runtime by Rails/Devise, not referenced from app code.
+  - activerecord.*
+  - devise.*
+  - errors.*
+  # Looked up by the activeadmin_configurable_columns gem, which i18n-tasks
+  # doesn't scan.
+  - active_admin.sidebars.*
+  - active_admin.table_columns.*
+  # Referenced from gem-rendered contexts / kept as shared action labels.
+  - active_admin.{view,edit,delete}

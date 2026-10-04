@@ -14,6 +14,10 @@ gem 'csv'
 gem 'devise', '>= 5.0.4'
 gem 'pundit', '>= 2.5.2'
 gem 'rails-i18n'
+gem 'omniauth', '>= 2.1.4'
+gem 'omniauth-google-oauth2', '>= 1.2.3'
+gem 'omniauth-rails_csrf_protection', '>= 2.0.1'
+gem 'omniauth-github', '>= 2.0.1'
 
 # Assets
 gem 'importmap-rails', '>= 2.2.3'
@@ -39,7 +43,7 @@ group :development, :test do
   gem 'bullet', '>= 8.2'
   gem 'bundler-audit', require: false
   gem 'factory_bot_rails', '>= 6.5.1'
-  gem 'ffaker', '>= 2.25'
+  gem 'faker', '>= 3.8'
 end
 
 group :test do

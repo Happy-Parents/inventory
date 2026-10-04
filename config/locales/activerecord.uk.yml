@@ -1,114 +1,73 @@
+---
 uk:
   activerecord:
-    models:
-      comment:
-        one: "Коментар"
-        few: "Коментарі"
-        many: "Коментарів"
-        other: "Коментарі"
-      admin:
-        one: "Адмін"
-        few: "Адміни"
-        many: "Адмінів"
-        other: "Адміни"
-      brand:
-        one: "Бренд"
-        few: "Бренди"
-        many: "Брендів"
-        other: "Бренди"
-      category:
-        one: "Категорія"
-        few: "Категорії"
-        many: "Категорій"
-        other: "Категорії"
-      product:
-        one: "Товар"
-        few: "Товари"
-        many: "Товарів"
-        other: "Товари"
-      stock_item:
-        one: "Складська позиція"
-        few: "Складські позиції"
-        many: "Складських позицій"
-        other: "Складські позиції"
-      warehouse:
-        one: "Склад"
-        few: "Склади"
-        many: "Складів"
-        other: "Склади"
-
     attributes:
       admin:
-        id: "ID"
-        email: "Електронна пошта"
+        created_at: Створено
+        email: Електронна пошта
+        encrypted_password: Зашифрований пароль
+        id: ID
+        remember_created_at: Час запам'ятовування входу
+        reset_password_sent_at: Час надсилання скидання пароля
+        reset_password_token: Токен скидання пароля
         role: Роль
-        encrypted_password: "Зашифрований пароль"
-        reset_password_token: "Токен скидання пароля"
-        reset_password_sent_at: "Час надсилання скидання пароля"
-        remember_created_at: "Час запам'ятовування входу"
-        created_at: "Створено"
-        updated_at: "Оновлено"
-
+        updated_at: Оновлено
       brand:
-        id: "ID"
-        name: "Назва"
-        created_at: "Створено"
-        updated_at: "Оновлено"
-        products: "Товари"
-        products_count: "К-сть товарів"
-
+        created_at: Створено
+        id: ID
+        name: Назва
+        products: Товари
+        products_count: К-сть товарів
+        updated_at: Оновлено
       category:
-        id: "ID"
-        name: "Назва"
-        parent_id: "Батьківська категорія"
-        created_at: "Створено"
-        updated_at: "Оновлено"
-        parent: "Батьківська категорія"
-        subcategories: "Підкатегорії"
-        products: "Товари"
-        products_count: "К-сть товарів"
-
+        created_at: Створено
+        id: ID
+        name: Назва
+        parent: Батьківська категорія
+        parent_id: Батьківська категорія
+        products: Товари
+        products_count: К-сть товарів
+        subcategories: Підкатегорії
+        updated_at: Оновлено
       product:
-        id: "ID"
-        manufacturer_name: "Назва виробника"
-        name: "Назва на сайті"
-        manufacturer_sku: "Артикул виробника"
-        sku: "Артикул внутрішній"
-        brand_id: "Бренд"
-        category_id: "Категорія"
-        language: "Мова"
-        site_status: "Наявність на сайті"
-        packaging_condition: "Стан упаковки"
-        hp_url: "Посилання на сторінку"
-        notes: "Нотатки"
-        created_at: "Створено"
-        updated_at: "Оновлено"
-        brand: "Бренд"
-        category: "Категорія"
-        stock_items: "Складські позиції"
-        warehouses: "Склади"
-        qty: "Кількість"
-        warehouse: "Склад"
-
+        brand: Бренд
+        brand_id: Бренд
+        category: Категорія
+        category_id: Категорія
+        created_at: Створено
+        hp_url: Посилання на сторінку
+        id: ID
+        language: Мова
+        manufacturer_name: Назва виробника
+        manufacturer_sku: Артикул виробника
+        name: Назва на сайті
+        notes: Нотатки
+        packaging_condition: Стан упаковки
+        qty: Кількість
+        site_status: Наявність на сайті
+        sku: Артикул внутрішній
+        stock_items: Складські позиції
+        updated_at: Оновлено
+        warehouse: Склад
+        warehouses: Склади
       stock_item:
-        id: "ID"
-        product_id: "Товар"
-        warehouse_id: "Склад"
-        quantity: "Кількість"
-        damaged_quantity: "Кількість пошкоджених"
-        created_at: "Створено"
-        updated_at: "Оновлено"
-        product: "Назва товару(артикул)"
-        warehouse: "Склад"
-
+        created_at: Створено
+        damaged_quantity: Кількість пошкоджених
+        id: ID
+        product: Назва товару(артикул)
+        product_id: Товар
+        quantity: Кількість
+        updated_at: Оновлено
+        warehouse: Склад
+        warehouse_id: Склад
       warehouse:
-        id: "ID"
-        name: "Назва"
-        created_at: "Створено"
-        updated_at: "Оновлено"
-        stock_items: "Складські позиції"
-        products: "Товари"
-        products_count: "К-сть товарів"
+        created_at: Створено
+        id: ID
+        name: Назва
+        products: Товари
+        products_count: К-сть товарів
+        stock_items: Складські позиції
+        updated_at: Оновлено
     enums:
       admin:
         role:
@@ -116,15 +75,51 @@ uk:
           super_admin: Супер адмін
       product:
         language:
-          ukrainian: "Українська"
-          russian: "Російська"
-          english: "Англійська"
-          unknown: "Невідомо"
-          not_applicable: "Без мови"
-        site_status:
-          published: "Опубліковано"
-          not_published: "НЕ опубліковано"
-          needs_review: "Невідомо"
+          english: Англійська
+          not_applicable: Без мови
+          russian: Російська
+          ukrainian: Українська
+          unknown: Невідомо
         packaging_condition:
-          ok: "Ціла"
-          damaged: "Пошкоджена"
+          damaged: Пошкоджена
+          ok: Ціла
+        site_status:
+          needs_review: Невідомо
+          not_published: НЕ опубліковано
+          published: Опубліковано
+    models:
+      admin:
+        few: Адміни
+        many: Адмінів
+        one: Адмін
+        other: Адміни
+      brand:
+        few: Бренди
+        many: Брендів
+        one: Бренд
+        other: Бренди
+      category:
+        few: Категорії
+        many: Категорій
+        one: Категорія
+        other: Категорії
+      comment:
+        few: Коментарі
+        many: Коментарів
+        one: Коментар
+        other: Коментарі
+      product:
+        few: Товари
+        many: Товарів
+        one: Товар
+        other: Товари
+      stock_item:
+        few: Складські позиції
+        many: Складських позицій
+        one: Складська позиція
+        other: Складські позиції
+      warehouse:
+        few: Склади
+        many: Складів
+        one: Склад
+        other: Склади

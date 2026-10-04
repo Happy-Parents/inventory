@@ -1,0 +1,5 @@
+<script async src="https://telegram.org/js/telegram-widget.js?22"
+        data-telegram-login="<%= Rails.application.credentials.dig(:oauth, :telegram, :bot_username) %>"
+        data-size="large"
+        data-auth-url="<%= omniauth_callback_url(:admin, :telegram) %>">
+</script>

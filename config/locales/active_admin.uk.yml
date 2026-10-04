@@ -1,17 +1,27 @@
+---
 uk:
   active_admin:
-    view: "👁️"
-    edit: "✏️"
     delete: "❌"
-    stock: "Залишки"
+    edit: "✏️"
     menu:
-      inventory: "Склад"
-      settings: "Налаштунки"
+      inventory: Склад
+      settings: Налаштунки
+      my_account: Мій Акаунт
+    my_account:
+      connected_as: Підключено як @%{username}
+      disconnect: Відключити Telegram
+      disconnect_confirm: Відключити Telegram?
+      disconnected: Telegram відключено.
+      not_connected: Не підключено. Натисніть кнопку нижче та дотримуйтесь інструкцій.
+        Повідомлення з підтвердженням шукайте в системному чаті «Telegram».
+      telegram_panel: Інтеграція з Telegram
     sidebars:
-      columns: "Колонки"
+      columns: Колонки
+    stock: Залишки
     table_columns:
-      title: "Колонки таблиць"
-      save: "Зберегти колонки"
-      saved: "Колонки збережено"
-      empty: "Жодна таблиця поки не має налаштовуваних колонок."
-      unknown_resource: "Невідома таблиця"
+      empty: Жодна таблиця поки не має налаштовуваних колонок.
+      save: Зберегти колонки
+      saved: Колонки збережено
+      title: Колонки таблиць
+      unknown_resource: Невідома таблиця
+    view: "👁️"
