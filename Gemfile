@@ -43,7 +43,7 @@ group :development, :test do
   gem 'bullet', '>= 8.2'
   gem 'bundler-audit', require: false
   gem 'factory_bot_rails', '>= 6.5.1'
-  gem 'ffaker', '>= 2.25'
+  gem 'faker', '>= 3.8'
 end
 
 group :test do

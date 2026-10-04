@@ -31,8 +31,12 @@ uk:
         subject: Інструкції з розблокування
     omniauth_callbacks:
       failure: Не вдалося автентифікувати вас через %{kind}, оскільки "%{reason}".
+      telegram_linked: 'Telegram підключено.'
+      telegram_not_linked: 'Цей Telegram аккаунт не підключено.
+        Sign увійдіть за допомогою  email або Google/GitHub і приєднайте Telegram
+        в розділі Мій Аккаунт.'
       not_authorized: |
-        Не вдалося увійти через Google для %{email}.
+        Не вдалося увійти.
         Будь ласка, перевірте, чи використовуєте ви правильний акаунт, або зверніться до адміністратора.
       success: Успішна автентифікація через обліковий запис %{kind}.
     passwords:

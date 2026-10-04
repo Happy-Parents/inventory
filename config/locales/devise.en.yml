@@ -30,14 +30,14 @@ en:
       unlock_instructions:
         subject: Unlock instructions
     omniauth_callbacks:
-      telegram_linked: 'Telegram connected. You can now sign in with one click.'
+      telegram_linked: 'Telegram connected.'
       telegram_taken: 'That Telegram account is already linked to another admin.'
-      telegram_not_linked: 'This Telegram account is not linked to any admin.
+      telegram_not_linked: 'This Telegram account is not linked.
         Sign in with email or Google/GitHub first, then connect Telegram
         under My Account.'
       failure: Could not authenticate you from %{kind} because "%{reason}".
       not_authorized: |
-        Could not sign in with Google for %{email}.
+        Could not sign in.
         Please make sure you are using the correct account or contact your administrator.
       success: Successfully authenticated from %{kind} account.
     passwords:

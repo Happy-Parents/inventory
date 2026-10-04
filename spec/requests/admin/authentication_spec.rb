@@ -101,7 +101,7 @@ RSpec.describe 'Admin authentication' do
       expect { get '/admin/auth/google_oauth2/callback' }.not_to change(Admin, :count)
 
       expect(response).to redirect_to('/admin/login')
-      expect(flash[:alert]).to include('stranger@gmail.com')
+      expect(flash[:alert]).to eq(I18n.t('devise.omniauth_callbacks.not_authorized'))
       expect(warden_admin_id).to be_nil
     end
   end
@@ -140,7 +140,7 @@ RSpec.describe 'Admin authentication' do
       expect { get '/admin/auth/github/callback' }.not_to change(Admin, :count)
 
       expect(response).to redirect_to('/admin/login')
-      expect(flash[:alert]).to include('stranger@github.com')
+      expect(flash[:alert]).to eq(I18n.t('devise.omniauth_callbacks.not_authorized'))
       expect(warden_admin_id).to be_nil
     end
 
@@ -174,7 +174,7 @@ RSpec.describe 'Admin authentication' do
       expect { get '/admin/auth/telegram/callback' }.not_to change(Admin, :count)
 
       expect(response).to redirect_to('/admin/login')
-      expect(flash[:alert]).to include('not linked to any admin')
+      expect(flash[:alert]).to eq(I18n.t('devise.omniauth_callbacks.telegram_not_linked'))
       expect(warden_admin_id).to be_nil
     end
   end
@@ -186,7 +186,7 @@ RSpec.describe 'Admin authentication' do
 
       get '/admin/auth/telegram/callback'
 
-      expect(response).to redirect_to('/admin')
+      expect(response).to redirect_to('/admin/my_account')
       expect(admin.reload.telegram_id).to eq(42)
       expect(admin.telegram_username).to eq('kyryl')
     end

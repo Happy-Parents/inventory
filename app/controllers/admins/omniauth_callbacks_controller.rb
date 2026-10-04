@@ -1,59 +1,51 @@
 module Admins
   class OmniauthCallbacksController < Devise::OmniauthCallbacksController
-    # Providers redirect here after authentication.
-    # The admins table is the whitelist: only an email with an existing Admin row may sign in.
-    def google_oauth2 = whitelist_sign_in
-    def github        = whitelist_sign_in
+    def google_oauth2 = sign_in_with_email
+    def github        = sign_in_with_email
+    def telegram      = admin_signed_in? ? connect_telegram : sign_in_with_telegram
+    def failure       = handle_omniauth_sign_failure
 
-    # Telegram shares no email, so the whitelist is the explicit link instead:
-    # a signed-in admin's click stores their telegram_id; a signed-out click
-    # only matches an already-linked admin. No auto-provisioning either way.
-    def telegram
-      auth = request.env['omniauth.auth']
-      admin_signed_in? ? link_telegram(auth) : telegram_sign_in(auth)
+    private
+
+    def sign_in_with_email
+      sign_in_result = ResolveAdminByEmail.call(omniauth_hash)
+      sign_in_and_redirect sign_in_result.admin, event: :authentication
+
+      rescue ActiveRecord::RecordNotFound
+        open_sign_in(alert: t('devise.omniauth_callbacks.not_authorized'))
     end
 
-    def failure
+    def connect_telegram
+      ConnectTelegram.call(current_admin, omniauth_hash)
+      open_my_account(notice: t('devise.omniauth_callbacks.telegram_linked'))
+
+    rescue ActiveRecord::RecordNotUnique
+      open_my_account(alert: t('devise.omniauth_callbacks.telegram_taken'))
+    end
+
+    def sign_in_with_telegram
+      sign_in_result = ResolveAdminByTelegram.call(omniauth_hash)
+      sign_in_and_redirect sign_in_result.admin, event: :authentication
+
+      rescue ActiveRecord::RecordNotFound
+        open_sign_in(alert: t('devise.omniauth_callbacks.telegram_not_linked'))
+    end
+
+    def open_sign_in(notification)
+      redirect_to new_admin_session_path, notification
+    end
+
+    def open_my_account(notification)
+      redirect_to admin_my_account_path, notification
+    end
+
+    def handle_omniauth_sign_failure
       redirect_to new_admin_session_path,
                   alert: t('devise.omniauth_callbacks.failure',
                            kind: OmniAuth::Utils.camelize(failed_strategy.name),
                            reason: failure_message)
     end
 
-    private
-
-    def whitelist_sign_in
-      email = request.env['omniauth.auth'].info.email.to_s.downcase
-      admin = Admin.find_by(email: email)
-
-      if admin
-        sign_in_and_redirect admin, event: :authentication
-      else
-        redirect_to new_admin_session_path,
-                    alert: t('devise.omniauth_callbacks.not_authorized', email: email)
-      end
-    end
-
-    def link_telegram(auth)
-      current_admin.update!(telegram_id: auth.uid,
-                            telegram_username: auth.info.nickname)
-      redirect_to admin_root_path,
-                  notice: t('devise.omniauth_callbacks.telegram_linked')
-    rescue ActiveRecord::RecordNotUnique
-      redirect_to admin_root_path,
-                  alert: t('devise.omniauth_callbacks.telegram_taken')
-    end
-
-    def telegram_sign_in(auth)
-      admin = Admin.find_by(telegram_id: auth.uid)
-
-      if admin
-        admin.update(telegram_username: auth.info.nickname) # keep display fresh
-        sign_in_and_redirect admin, event: :authentication
-      else
-        redirect_to new_admin_session_path,
-                    alert: t('devise.omniauth_callbacks.telegram_not_linked')
-      end
-    end
+    def omniauth_hash = request.env['omniauth.auth']
   end
 end

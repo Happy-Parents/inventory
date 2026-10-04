@@ -1,6 +1,6 @@
 RSpec.describe OmniAuth::Strategies::Telegram do
   let(:bot_token) { 'test-bot-token' }
-  let(:strategy) { described_class.new(->(_env) { [200, {}, ['ok']] }, 'test_bot', bot_token) }
+  let(:strategy) { described_class.new(->(_env) { [ 200, {}, [ 'ok' ] ] }, 'test_bot', bot_token) }
 
   # Signs a payload exactly the way Telegram does: every non-empty field
   # except `hash`, sorted, joined as key=value lines, HMAC-SHA256 keyed

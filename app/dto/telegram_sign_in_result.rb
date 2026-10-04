@@ -1,0 +1,1 @@
+TelegramSignInResult = Data.define(:admin)

@@ -12,7 +12,5 @@ module Inventory
     config.i18n.available_locales = [ :uk, :en ]
     config.i18n.default_locale = :uk
     config.i18n.fallbacks = [ :en ]
-
-    # config.eager_load_paths << Rails.root.join("extras")
   end
 end
