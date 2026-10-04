@@ -10,6 +10,10 @@ ActiveAdmin.register_page 'My Account' do
                         ) do
       render('admin/telegram_status')
     end
+
+
+    h2 t('active_admin.table_columns.title'), class: 'text-lg font-semibold mt-8 mb-4'
+    render 'activeadmin_configurable_columns/page', resources: configurable_columns_resources
   end
 
   page_action :disconnect_telegram, method: :delete do

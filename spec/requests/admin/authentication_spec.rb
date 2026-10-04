@@ -218,6 +218,20 @@ RSpec.describe 'Admin authentication' do
       expect(response.body.scan('text-green-500').count).to eq(1)
     end
 
+    it 'embeds the column picker on My Account and saves back to it' do
+      sign_in admin
+
+      get '/admin/my_account'
+      expect(response.body).to include('visible_columns')
+
+      patch '/admin/table_columns/update',
+            params: { resource_key: 'products', visible_columns: [ '', 'name' ] },
+            headers: { 'HTTP_REFERER' => 'http://www.example.com/admin/my_account' }
+
+      expect(response).to redirect_to('/admin/my_account')
+      expect(admin.table_preferences.find_by(resource_key: 'products').visible_columns).to eq([ 'name' ])
+    end
+
     it 'disconnects Telegram from My Account, keeping password login intact' do
       admin.update!(telegram_id: 42, telegram_username: 'kyryl')
       sign_in admin
