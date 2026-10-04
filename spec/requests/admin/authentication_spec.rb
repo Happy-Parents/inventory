@@ -1,6 +1,6 @@
 RSpec.describe 'Admin authentication' do
   let(:password) { 'Secret123!' }
-  let!(:admin) { create(:admin, email: 'owner@example.com', password: password) }
+  let!(:admin) { create(:admin, email: Faker::Internet.email, password: password) }
 
   before { OmniAuth.config.test_mode = true }
 
@@ -53,7 +53,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'rejects an SSO-only admin (no password set) even with a blank password' do
-      sso_only = create(:admin, email: 'sso.only@example.com', password: nil)
+      sso_only = create(:admin, email: Faker::Internet.email, password: nil)
 
       post '/admin/login', params: { admin: { email: sso_only.email, password: '' } }
 
@@ -78,7 +78,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'signs in an SSO-only admin' do
-      sso_only = create(:admin, email: 'sso.only@example.com', password: nil)
+      sso_only = create(:admin, email: Faker::Internet.email, password: nil)
       mock_oauth(:google_oauth2, sso_only.email)
 
       get '/admin/auth/google_oauth2/callback'
@@ -96,7 +96,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'rejects an email that has no Admin row and does not create one' do
-      mock_oauth(:google_oauth2, 'stranger@gmail.com')
+      mock_oauth(:google_oauth2, Faker::Internet.email)
 
       expect { get '/admin/auth/google_oauth2/callback' }.not_to change(Admin, :count)
 
@@ -117,7 +117,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'signs in an SSO-only admin' do
-      sso_only = create(:admin, email: 'sso.only@example.com', password: nil)
+      sso_only = create(:admin, email: Faker::Internet.email, password: nil)
       mock_oauth(:github, sso_only.email)
 
       get '/admin/auth/github/callback'
@@ -135,7 +135,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'rejects an email that has no Admin row and does not create one' do
-      mock_oauth(:github, 'stranger@github.com')
+      mock_oauth(:github, Faker::Internet.email)
 
       expect { get '/admin/auth/github/callback' }.not_to change(Admin, :count)
 
@@ -192,7 +192,7 @@ RSpec.describe 'Admin authentication' do
     end
 
     it 'refuses to link a Telegram account already taken by another admin' do
-      create(:admin, email: 'other@example.com', telegram_id: 42)
+      create(:admin, email: Faker::Internet.email, telegram_id: 42)
       sign_in admin
       mock_telegram(42)
 
