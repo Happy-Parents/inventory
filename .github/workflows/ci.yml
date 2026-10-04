@@ -120,4 +120,7 @@ jobs:
           DB_PASSWORD: postgres
         run: |
           bin/rails db:test:prepare
+          # active_admin.css is gitignored (built from Tailwind), so request
+          # specs rendering admin pages need it built here first.
+          bin/rails active_admin:tailwind:build
           bundle exec rspec
