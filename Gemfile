@@ -29,7 +29,7 @@ gem 'tailwindcss-ruby', '~> 4.0'
 gem 'turbo-rails', '>= 2.0.23'
 
 # Server Provisioning
-gem 'image_processing', '~> 2.1'
+gem 'image_processing', '~> 2.2'
 gem 'kamal', '>= 2.12', require: false
 # image_processing 2.0 made its backends soft dependencies, so the one Active
 # Storage's variant processor uses (:vips, the Rails 7.0+ default) has to be
