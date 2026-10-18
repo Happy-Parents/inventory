@@ -2,8 +2,15 @@
 #
 # Install (or reinstall) the production database backup system on the VPS.
 #
-#   bin/backup-install          # push scripts, secrets and crontab
-#   bin/backup-install --test   # ...and immediately run one backup
+#   bin/backup-install            # push scripts, secrets and crontab
+#   bin/backup-install --test     # ...and immediately run one backup
+#   bin/backup-install -d NAME    # target the Kamal destination NAME instead
+#                                 # (config/deploy.NAME.yml merged over deploy.yml)
+#   bin/backup-install --no-cron  # push scripts and secrets, leave the crontab alone
+#
+# --no-cron exists for a standby server: the scripts upload to the same R2
+# prefix production uses, so a second server must not run the schedule until
+# it *is* production.
 #
 # Idempotent and safe to re-run: it is also how to rebuild backups on a fresh
 # server after a rebuild. Target host, SSH user and key all come from
@@ -14,15 +21,30 @@ set -Eeuo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 RUN_TEST=no
-[ "${1:-}" = "--test" ] && RUN_TEST=yes
+INSTALL_CRON=yes
+DESTINATION="${KAMAL_DESTINATION:-}"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --test) RUN_TEST=yes; shift ;;
+    --no-cron) INSTALL_CRON=no; shift ;;
+    -d|--destination) DESTINATION=$2; shift 2 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
 
 read -r HOST USER_NAME KEY_RAW < <(
   ruby -ryaml -e '
+    merge = ->(a, b) { a.merge(b) { |_, x, y| x.is_a?(Hash) && y.is_a?(Hash) ? merge.(x, y) : y } }
     c = YAML.load_file("config/deploy.yml")
+    if (d = ARGV[0]) && !d.empty?
+      f = "config/deploy.#{d}.yml"
+      abort "#{f} not found" unless File.exist?(f)
+      c = merge.(c, YAML.load_file(f))
+    end
     puts [c.dig("accessories", "db", "host"),
           c.dig("ssh", "user"),
           c.dig("ssh", "keys").first].join(" ")
-  '
+  ' "$DESTINATION"
 )
 KEY="${KEY_RAW/#\~/$HOME}"
 REMOTE_HOME="/home/$USER_NAME"
@@ -71,6 +93,7 @@ HEALTHCHECKS_VERIFY_URL=$VERIFY_URL
 SECRETS
 "${SSH[@]}" "chmod 600 '$DEST/secrets.env'"
 
+if [ "$INSTALL_CRON" = yes ]; then
 echo "==> installing crontab"
 # Keep a copy of whatever was there, so an install can never silently discard
 # an unrelated job somebody added by hand.
@@ -78,9 +101,12 @@ echo "==> installing crontab"
 PREV=$("${SSH[@]}" "grep -cvE '^\s*(#|\$)' '$DEST/crontab.previous' 2>/dev/null || true")
 "${SSH[@]}" 'crontab -' < config/backup.crontab
 echo "    installed (previous crontab had $PREV entries, saved to $DEST/crontab.previous)"
+else
+echo "==> crontab NOT installed (--no-cron); enable later with: bin/backup-install${DESTINATION:+ -d $DESTINATION}"
+fi
 
 echo "==> installed:"
-"${SSH[@]}" "ls -la '$DEST' && echo && crontab -l | grep -vE '^\s*#' | grep -vE '^\s*$'"
+"${SSH[@]}" "ls -la '$DEST' && echo && (crontab -l 2>/dev/null || echo '(no crontab)') | grep -vE '^\s*#' | grep -vE '^\s*$'"
 
 if [ "$RUN_TEST" = yes ]; then
   echo

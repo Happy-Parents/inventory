@@ -8,7 +8,7 @@ image: happy-parents/inventory
 # Deploy to these servers.
 servers:
   web:
-    - 193.169.188.144
+    - 194.163.162.189
   # job:
   #   hosts:
   #     - 192.168.0.1
@@ -117,13 +117,13 @@ builder:
 ssh:
   user: deployer
   keys:
-    - ~/.ssh/koi_vps_deployer
+    - ~/.ssh/koi_vps_deployer_contabo
 
 # Use accessory services (secrets come from .kamal/secrets).
 accessories:
   db:
     image: postgres:17
-    host: 193.169.188.144
+    host: 194.163.162.189
     # Bind to localhost only; the app reaches it over the Kamal docker network.
     port: "127.0.0.1:5432:5432"
     env:

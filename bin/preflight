@@ -2,8 +2,14 @@
 #
 # Pre-deploy checks. Run before bin/kamal deploy.
 #
-#   bin/preflight            # local checks only
-#   bin/preflight --remote   # ...plus the server and backup system
+#   bin/preflight                   # local checks only
+#   bin/preflight --remote          # ...plus the server and backup system
+#   bin/preflight --remote -d NAME  # ...against the Kamal destination NAME
+#                                   # (config/deploy.NAME.yml merged over
+#                                   # deploy.yml, exactly as `bin/kamal -d`)
+#
+# Inside a Kamal hook the destination comes from KAMAL_DESTINATION, so
+# `bin/kamal deploy -d contabo` checks the Contabo host, not the default one.
 #
 # Exists because the failures worth catching are the ones that are invisible
 # until a deploy is already underway. A malformed credentials file still
@@ -29,7 +35,14 @@ warn() { printf "  ${Y}WARN${N}  %s\n" "$1"; WARNINGS=$((WARNINGS + 1)); }
 section() { printf "\n${B}%s${N}\n" "$1"; }
 
 REMOTE=no
-[ "${1:-}" = "--remote" ] && REMOTE=yes
+DEST="${KAMAL_DESTINATION:-}"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --remote) REMOTE=yes; shift ;;
+    -d|--destination) DEST=$2; shift 2 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
 
 WORK=$(mktemp -d)
 trap 'rm -rf "$WORK"' EXIT
@@ -156,8 +169,8 @@ section "Kamal configuration"
 # ---------------------------------------------------------------------------
 if [ -n "${KAMAL_VERSION:-}" ]; then
   pass "skipped -- running inside a Kamal hook, which means Kamal already parsed it"
-elif bin/kamal config > "$WORK/kamal.yml" 2>"$WORK/kamal.err"; then
-  pass "deploy.yml parses ($(grep -c . "$WORK/kamal.yml") lines of resolved config)"
+elif bin/kamal config ${DEST:+-d "$DEST"} > "$WORK/kamal.yml" 2>"$WORK/kamal.err"; then
+  pass "deploy.yml${DEST:+ + deploy.$DEST.yml} parses ($(grep -c . "$WORK/kamal.yml") lines of resolved config)"
 else
   fail "bin/kamal config failed:"
   head -3 "$WORK/kamal.err" | sed 's/^/        /'
@@ -169,11 +182,17 @@ section "Server"
 # ---------------------------------------------------------------------------
   read -r HOST SSH_USER KEY_RAW < <(
     ruby -ryaml -e '
+      merge = ->(a, b) { a.merge(b) { |_, x, y| x.is_a?(Hash) && y.is_a?(Hash) ? merge.(x, y) : y } }
       c = YAML.load_file("config/deploy.yml")
+      if (d = ARGV[0]) && !d.empty?
+        f = "config/deploy.#{d}.yml"
+        abort "#{f} not found" unless File.exist?(f)
+        c = merge.(c, YAML.load_file(f))
+      end
       puts [c.dig("accessories", "db", "host"),
             c.dig("ssh", "user"),
             c.dig("ssh", "keys").first].join(" ")
-    '
+    ' "$DEST"
   )
   KEY="${KEY_RAW/#\~/$HOME}"
   SSH=(ssh -i "$KEY" -o BatchMode=yes -o ConnectTimeout=10 "$SSH_USER@$HOST")
