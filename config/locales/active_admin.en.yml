@@ -7,6 +7,7 @@ en:
       inventory: Inventory
       settings: Settings
       my_account: My Account
+      api_sessions: API sessions
     my_account:
       connected_as: Connected as @%{username}
       disconnect: Disconnect Telegram

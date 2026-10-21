@@ -24,6 +24,8 @@
 # A signed-in client app. Holds the refresh-token state: only a SHA-256 digest
 # of the current refresh token is stored, and every refresh replaces it
 class ApiSession < ApplicationRecord
+  include Ransackable
+
   REFRESH_TOKEN_TTL = 30.days
   PROVIDERS = %w[password google_oauth2 github telegram apple].freeze
 
@@ -32,6 +34,10 @@ class ApiSession < ApplicationRecord
   validates :provider, inclusion: { in: PROVIDERS }
 
   scope :active, -> { where(revoked_at: nil, expires_at: Time.current..) }
+
+  def self.unransackable_attributes
+    %w[refresh_token_digest]
+  end
 
   def self.digest(secret) = OpenSSL::Digest::SHA256.hexdigest(secret)
 

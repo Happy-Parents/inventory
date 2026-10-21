@@ -1,12 +1,15 @@
 # ActiveAdmin authorization rules:
-#   * super_admin — may manage everything, including Admin records.
-#   * manager     — may manage everything EXCEPT Admin records, but may still
-#     view their own profile.
-# Anything that isn't an Admin (products, brands, dashboard, comments, ...) is
-# open to any signed-in admin; Admin is restricted to super_admins.
+#   * super_admin — may manage everything, including Admin records and API
+#     sessions.
+#   * manager     — may manage everything EXCEPT Admin records and API
+#     sessions, but may still view their own profile.
+# Anything else (products, brands, dashboard, comments, ...) is open to any
+# signed-in admin.
 class InventoryAuthorization < ActiveAdmin::AuthorizationAdapter
+  SUPER_ADMIN_ONLY = [ Admin, ApiSession ].freeze
+
   def authorized?(action, subject = nil)
-    if admin_subject?(subject)
+    if super_admin_only?(subject)
       user&.super_admin? || own_profile_read?(action, subject)
     else
       true
@@ -15,8 +18,8 @@ class InventoryAuthorization < ActiveAdmin::AuthorizationAdapter
 
   private
 
-  def admin_subject?(subject)
-    subject == Admin || subject.is_a?(Admin)
+  def super_admin_only?(subject)
+    SUPER_ADMIN_ONLY.any? { |klass| subject == klass || subject.is_a?(klass) }
   end
 
   def own_profile_read?(action, subject)

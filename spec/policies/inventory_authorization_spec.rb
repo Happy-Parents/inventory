@@ -45,6 +45,29 @@ RSpec.describe InventoryAuthorization do
     end
   end
 
+  describe 'API sessions' do
+    let(:api_session) { build_stubbed(:admin).then { ApiSession.new(admin: it) } }
+
+    context 'with a super admin' do
+      let(:user) { build_stubbed(:admin, :super_admin) }
+
+      it 'may list and delete them' do
+        expect(adapter.authorized?(ActiveAdmin::Auth::READ, ApiSession)).to be(true)
+        expect(adapter.authorized?(ActiveAdmin::Auth::DESTROY, api_session)).to be(true)
+      end
+    end
+
+    context 'with a manager' do
+      let(:user) { build_stubbed(:admin) }
+
+      it 'may neither list nor delete them, including the own ones' do
+        expect(adapter.authorized?(ActiveAdmin::Auth::READ, ApiSession)).to be(false)
+        expect(adapter.authorized?(ActiveAdmin::Auth::DESTROY, api_session)).to be(false)
+        expect(adapter.authorized?(ActiveAdmin::Auth::DESTROY, ApiSession.new(admin: user))).to be(false)
+      end
+    end
+  end
+
   context 'without a user' do
     let(:user) { nil }
 
