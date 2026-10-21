@@ -14,3 +14,12 @@ uk:
         title: Вхід
       password:
         title: Пароль
+  api:
+    errors:
+      bad_request: Обов'язкові параметри відсутні або некоректні.
+      forbidden: У вас немає прав на цю дію.
+      invalid_credentials: Неправильний email або пароль.
+      invalid_refresh_token: Токен оновлення недійсний, прострочений або відкликаний. Увійдіть знову.
+      not_found: Ресурс не знайдено.
+      too_many_requests: Забагато запитів. Спробуйте пізніше.
+      unauthorized: Потрібен дійсний токен доступу.
