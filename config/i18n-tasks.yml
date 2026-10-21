@@ -23,6 +23,7 @@ ignore_unused:
   - activerecord.*
   - devise.*
   - errors.*
+  - api.errors.*
   # Looked up by the activeadmin_configurable_columns gem, which i18n-tasks
   # doesn't scan.
   - active_admin.sidebars.*

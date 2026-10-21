@@ -14,3 +14,12 @@ en:
         title: Sign in
       password:
         title: Password
+  api:
+    errors:
+      bad_request: Required parameters are missing or invalid.
+      forbidden: You are not allowed to perform this action.
+      invalid_credentials: Invalid email or password.
+      invalid_refresh_token: The refresh token is invalid, expired or revoked. Sign in again.
+      not_found: Resource not found.
+      too_many_requests: Too many requests. Try again later.
+      unauthorized: A valid access token is required.

@@ -12,6 +12,13 @@ uk:
         reset_password_token: Токен скидання пароля
         role: Роль
         updated_at: Оновлено
+      api_session:
+        admin: Адмін
+        created_at: Вхід виконано
+        device_name: Пристрій
+        expires_at: Діє до
+        provider: Спосіб входу
+        updated_at: Останнє оновлення
       brand:
         created_at: Створено
         id: ID
@@ -93,6 +100,11 @@ uk:
         many: Адмінів
         one: Адмін
         other: Адміни
+      api_session:
+        few: API сесії
+        many: API сесій
+        one: API сесія
+        other: API сесії
       brand:
         few: Бренди
         many: Брендів

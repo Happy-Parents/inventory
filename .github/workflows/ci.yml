@@ -124,3 +124,7 @@ jobs:
           # specs rendering admin pages need it built here first.
           bin/rails active_admin:tailwind:build
           bundle exec rspec
+          # swagger/ is generated from the API request specs; fail if the
+          # committed document is stale.
+          bin/rails rswag:specs:swaggerize
+          git diff --exit-code swagger/

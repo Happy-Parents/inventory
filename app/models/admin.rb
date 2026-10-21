@@ -28,6 +28,7 @@ devise :database_authenticatable, :rememberable, :validatable,
 
   has_many :table_preferences, class_name: 'ActiveadminConfigurableColumns::Preference',
                                as: :admin, dependent: :destroy
+  has_many :api_sessions, dependent: :delete_all
 
   def self.unransackable_attributes
     %w[encrypted_password reset_password_token]

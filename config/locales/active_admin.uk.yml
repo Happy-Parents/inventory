@@ -7,6 +7,7 @@ uk:
       inventory: Склад
       settings: Налаштунки
       my_account: Мій Акаунт
+      api_sessions: API сесії
     my_account:
       connected_as: Підключено як @%{username}
       disconnect: Відключити Telegram

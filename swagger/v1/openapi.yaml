@@ -1,0 +1,205 @@
+---
+openapi: 3.0.3
+info:
+  title: Inventory API
+  version: v1
+  description: |
+    JSON API for the inventory mobile app.
+
+    Sign in with `POST /session` and send the returned `access_token` as
+    `Authorization: Bearer <access_token>` on every other request.
+
+    Access tokens are JWTs valid for 15 minutes. When one expires (401),
+    exchange the `refresh_token` at `POST /session/refresh` for a new pair.
+    Refresh tokens are single-use: always store the newest one. Presenting
+    an already used refresh token revokes the whole session.
+servers:
+- url: "/api/v1"
+security:
+- bearer: []
+paths:
+  "/me":
+    get:
+      summary: Current admin
+      tags:
+      - Authentication
+      responses:
+        '200':
+          description: the admin the access token was issued to
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/admin"
+        '401':
+          description: missing, invalid or expired access token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/session":
+    post:
+      summary: Sign in
+      tags:
+      - Authentication
+      description: Exchanges admin credentials for an access token (15 min) and a
+        refresh token (30 days).
+      security: []
+      parameters: []
+      responses:
+        '201':
+          description: signed in
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/token_pair"
+        '401':
+          description: wrong email or password
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+        '400':
+          description: email or password missing
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - email
+              - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                device_name:
+                  type: string
+                  description: Label to recognise the session later, e.g. "Pixel 9"
+    delete:
+      summary: Sign out
+      tags:
+      - Authentication
+      description: Revokes the session the access token belongs to; its refresh token
+        stops working. Already issued access tokens stay valid until they expire.
+      responses:
+        '204':
+          description: session revoked
+        '401':
+          description: missing or invalid access token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+  "/session/refresh":
+    post:
+      summary: Refresh tokens
+      tags:
+      - Authentication
+      description: Exchanges a refresh token for a new token pair. The presented refresh
+        token is consumed; reusing it later revokes the session.
+      security: []
+      parameters: []
+      responses:
+        '200':
+          description: new token pair
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/token_pair"
+        '401':
+          description: refresh token invalid, expired, revoked or reused
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+        '400':
+          description: refresh token missing
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token issued by POST /session or POST /session/refresh
+  schemas:
+    error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              example: unauthorized
+            message:
+              type: string
+    token_pair:
+      type: object
+      required:
+      - token_type
+      - access_token
+      - expires_in
+      - refresh_token
+      - refresh_token_expires_at
+      properties:
+        token_type:
+          type: string
+          enum:
+          - Bearer
+        access_token:
+          type: string
+          description: JWT
+        expires_in:
+          type: integer
+          description: Access token lifetime in seconds
+          example: 900
+        refresh_token:
+          type: string
+          description: Single-use; replaced on every refresh
+        refresh_token_expires_at:
+          type: string
+          format: date-time
+    admin:
+      type: object
+      required:
+      - id
+      - email
+      - role
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+          - manager
+          - super_admin

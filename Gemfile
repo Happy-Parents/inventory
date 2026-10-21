@@ -19,6 +19,12 @@ gem 'omniauth-google-oauth2', '>= 1.2.3'
 gem 'omniauth-rails_csrf_protection', '>= 2.0.1'
 gem 'omniauth-github', '>= 2.0.1'
 
+# API
+gem 'blueprinter', '~> 1.3'
+gem 'jwt', '~> 3.3'
+gem 'rswag-api', '~> 2.17'
+gem 'rswag-ui', '~> 2.17'
+
 # Assets
 gem 'importmap-rails', '>= 2.2.3'
 gem 'propshaft', '>= 1.3.2'
@@ -49,6 +55,7 @@ end
 group :test do
   gem 'pundit-matchers', '>= 4.0'
   gem 'rspec-rails', '>= 8.0.4'
+  gem 'rswag-specs', '~> 2.17'
   gem 'shoulda-matchers', '>= 8.0.1'
 end
 group :development do
