@@ -96,8 +96,8 @@ Add them under Settings → Secrets and variables → Actions:
 | Secret | Value |
 | ------ | ----- |
 | `RAILS_PRODUCTION_KEY` | Contents of `config/credentials/production.key`. Unlocks the registry PAT, the database password and the origin TLS key. |
-| `KAMAL_SSH_PRIVATE_KEY` | Private half of `~/.ssh/koi_vps_deployer`, whole PEM including the header and footer lines. Written back to that same path, because `ssh.keys` in `config/deploy.yml` names it explicitly. |
-| `KAMAL_SSH_KNOWN_HOSTS` | *Optional but recommended.* Output of `ssh-keyscan 193.169.188.144`. Without it the workflow keyscans at deploy time and trusts whatever answers. |
+| `KAMAL_SSH_PRIVATE_KEY` | Private half of `~/.ssh/koi_vps_deployer_contabo`, whole PEM including the header and footer lines. Written back to that same path, because `ssh.keys` in `config/deploy.yml` names it explicitly. |
+| `KAMAL_SSH_KNOWN_HOSTS` | *Optional but recommended.* Output of `ssh-keyscan 194.163.162.189`. Without it the workflow keyscans at deploy time and trusts whatever answers. |
 
 Nothing else is needed: Kamal logs in to GHCR with the PAT it reads out of the
 encrypted production credentials, so `GITHUB_TOKEN` is not involved and the job
