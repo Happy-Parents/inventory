@@ -73,7 +73,7 @@ jobs:
           # No trailing newline: this file is read verbatim as RAILS_MASTER_KEY.
           printf '%s' "${RAILS_PRODUCTION_KEY}" > config/credentials/production.key
 
-      # deploy.yml pins ssh.keys to ~/.ssh/koi_vps_deployer, so the file has to
+      # deploy.yml pins ssh.keys to ~/.ssh/koi_vps_deployer_contabo, so the file has to
       # land under that exact name. bin/preflight --remote reads the same path
       # out of deploy.yml when it opens its own SSH connection.
       - name: Configure SSH for the deployer account
@@ -84,14 +84,14 @@ jobs:
           set -euo pipefail
 
           if [ -z "${KAMAL_SSH_PRIVATE_KEY}" ]; then
-            echo "::error::Repository secret KAMAL_SSH_PRIVATE_KEY is not set (private half of ~/.ssh/koi_vps_deployer)"
+            echo "::error::Repository secret KAMAL_SSH_PRIVATE_KEY is not set (private half of ~/.ssh/koi_vps_deployer_contabo)"
             exit 1
           fi
 
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
-          printf '%s\n' "${KAMAL_SSH_PRIVATE_KEY}" > ~/.ssh/koi_vps_deployer
-          chmod 600 ~/.ssh/koi_vps_deployer
+          printf '%s\n' "${KAMAL_SSH_PRIVATE_KEY}" > ~/.ssh/koi_vps_deployer_contabo
+          chmod 600 ~/.ssh/koi_vps_deployer_contabo
 
           # Kamal connects with net-ssh, which verifies host keys, and preflight
           # ssh's with BatchMode=yes -- both need known_hosts populated up front.
