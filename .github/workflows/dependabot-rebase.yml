@@ -1,0 +1,53 @@
+# Keeps open Dependabot PRs up to date with main.
+#
+# Dependabot's own `rebase-strategy: auto` only rebases a PR once it has a
+# merge conflict. The main ruleset requires branches to be up to date before
+# merging (strict_required_status_checks_policy), so a PR that is merely
+# behind main stays blocked. On every push to main this asks Dependabot to
+# rebase each of its PRs that has fallen behind. Rebasing through Dependabot,
+# rather than GitHub's "Update branch" merge, keeps the PR under Dependabot's
+# management.
+#
+# Dependabot only obeys `@dependabot` commands from accounts with push access,
+# and github-actions[bot] (the default GITHUB_TOKEN) does not count -- it gets
+# "Sorry, only users with push access can use that command." The comment is
+# therefore posted with DEPENDABOT_REBASE_TOKEN: a fine-grained personal access
+# token of a user with write access, scoped to this repository with
+# "Pull requests: Read and write". Store it as an Actions repository secret.
+name: Dependabot rebase
+
+on:
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: dependabot-rebase
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rebase:
+    name: Rebase Dependabot PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request rebase of PRs behind main
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDABOT_REBASE_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::DEPENDABOT_REBASE_TOKEN secret is not set; Dependabot ignores rebase requests from github-actions[bot]"
+            exit 1
+          fi
+
+          gh pr list --repo "$REPO" --author "app/dependabot" --base main --state open \
+            --json number,headRefOid --jq '.[] | "\(.number) \(.headRefOid)"' |
+          while read -r number head; do
+            behind=$(gh api "repos/$REPO/compare/$GITHUB_SHA...$head" --jq '.behind_by')
+            if [ "$behind" -gt 0 ]; then
+              echo "PR #$number is $behind commit(s) behind main; requesting rebase"
+              gh pr comment "$number" --repo "$REPO" --body "@dependabot rebase"
+            fi
+          done
