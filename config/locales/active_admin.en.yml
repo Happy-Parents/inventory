@@ -21,6 +21,10 @@ en:
     stock: Stock
     table_columns:
       empty: No table has configurable columns yet.
+      move: Move %{column}
+      reorder_hint: Drag to reorder, or focus and use the arrow keys
+      reset: Reset to defaults
+      reset_done: Columns reset to defaults
       save: Save columns
       saved: Columns saved
       title: Table columns

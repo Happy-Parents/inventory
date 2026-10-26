@@ -232,6 +232,18 @@ RSpec.describe 'Admin authentication' do
       expect(admin.table_preferences.find_by(resource_key: 'products').visible_columns).to eq([ 'name' ])
     end
 
+    it 'renders the products table in the column order saved from My Account' do
+      create(:product)
+      sign_in admin
+
+      patch '/admin/table_columns/update',
+            params: { resource_key: 'products', visible_columns: %w[name sku], columns: %w[sku name] },
+            headers: { 'HTTP_REFERER' => 'http://www.example.com/admin/my_account' }
+      get '/admin/products'
+
+      expect(response.body.scan(/<th[^>]*data-column="([^"]+)"/).flatten & %w[name sku]).to eq(%w[sku name])
+    end
+
     it 'disconnects Telegram from My Account, keeping password login intact' do
       admin.update!(telegram_id: 42, telegram_username: 'kyryl')
       sign_in admin
